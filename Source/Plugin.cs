@@ -23,6 +23,7 @@ public class Plugin : BaseUnityPlugin
         Harmony harmony = new (PluginGUID);
         harmony.Patch(AccessTools.Method(typeof(StatsManager), "Start"), postfix: new HarmonyMethod(AccessTools.Method(typeof(Patches), "GameStart")));
         harmony.Patch(AccessTools.Method(typeof(EnemyHunter), "OnTouchPlayerGrabbedObject"), postfix: new HarmonyMethod(typeof(Patches), "HunterOnTouchPlayerGrabbedObjectPostfix"));
+        harmony.Patch(AccessTools.Method(typeof(EnemyHunter), "ShootRPC"), postfix: new HarmonyMethod(typeof(Patches), "HunterShootRPCPostFix"));
         harmony.Patch(AccessTools.Method(typeof(EnemyRigidbody), "OnCollisionStay"), postfix: new HarmonyMethod(typeof(Patches), "EnemyOnCollisionStayPostfix"));
     }
 }

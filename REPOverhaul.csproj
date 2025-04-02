@@ -29,6 +29,7 @@
     <Reference Include="UnityEngine"/>
     <Reference Include="UnityEngine.CoreModule"/>
     <Reference Include="PhotonUnityNetworking"/>
+    <Reference Include="PhotonRealtime"/>
     <Reference Include="CommandLine"/>
   </ItemGroup>
 </Project>

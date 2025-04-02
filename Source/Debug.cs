@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Ardot.REPO.REPOverhaul;
 
 public static class Debug
-{
+{ 
     public static void PrintTree(GameObject root, bool printComponents = true)
     {
         List<char> message = new ();

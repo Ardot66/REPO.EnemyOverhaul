@@ -1,26 +1,58 @@
 # Notes
 
+## Misc Changes
+
+- Make pits fall into adjacent rooms from the ceiling, dealing non-lethal fall damage.
+- Continue tweaking shop-item balance
+- Come up with a better recharge / energy system for tools?
+  - Special items that are large and breakable (might have no value either), but provide power crystals when extracted?
+- Improve health economy, similar idea to energy crystal, specialised items?
+- Make melee weapons have no charge, more skill based somehow?
+  - Maybe a durability system where new weapons have to be purchased after old ones break?
+- Make the minimap an upgrade, potentially remove entirely.
+
 ## Enemies
 
 - Peeper
 - Shadow-child
 - Gnome
+  - Change to do constant damage to items?
 - Apex-predator
 - Spewer
-- Rugrat
+- Rugrat (Needs big changes)
+  - Maybe it just needs to be held?
+    - When being held, it becomes calm, but will become extremely aggressive if it is hurt in any way.
+    - If set down for more than 15 seconds or some other amount of time will become aggressive.
+    - Will approach players when first spawned, and can only become aggressive after seeing players.
 - Animal
 - Upscream
+  - Just get rid of it OMG I hate this mfer so fucking much
 - Hidden
-- Chef
-- Bowtie
+  - Needs more counterplay, especially when players are alone.
+  - Maybe it steals equipment from players, collecting it in a stash somewhere?
+    - It's just trying to protect the other monsters lol.
+    - Can even take the cart potentially?
+- Chef (Pretty good already)
+- Bowtie (Kinda meh, could use more of a gimmick)
 - Mentalist
+  - Needs big changes
 - Banger
 - Headman
+  - Change to aggro players only when holding items above a certain value?
 - Robe
-- Huntsman
+  - It wants to be part of the team, gets angry and enters rage if players try to run away from it?
+    - Might also aggro if bumped by items held by player
+- Huntsman (Fixed!)
 - Reaper
-- Clown
+  - Only aggro players not moving?
+- Clown (Decent already)
 - Trudge
+  - Really hates extraction points, will approach and destroy them.
+    - An indicator that a trudge is approaching an extraction point? (e.g. Unidentified object approaching extraction, distance 10m)
+    - Approaches the ship in the same way if no extractions are opened, preventing cheese where players stack stuff near unopened extractions.
+    - When an extraction is destroyed, the amount needed is added to the next one?
+    - Will now only aggro players if they attack it or stay directly in front of it for a time.
+      - This gives players the choice between extracting quickly and fighting the big boss enemy.
 
 ## Items
 

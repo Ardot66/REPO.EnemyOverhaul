@@ -13,6 +13,7 @@ public class Plugin : BaseUnityPlugin
     public const string PluginGUID = "Ardot.REPO.REPOverhaul";
 
     public static Dictionary<string, GameObject> Enemies;
+    public static Harmony Harmony;
     internal static new ManualLogSource Logger;
 
     private void Awake()
@@ -20,10 +21,8 @@ public class Plugin : BaseUnityPlugin
         Logger = base.Logger;
         Logger.LogInfo($"Plugin {PluginGUID} is loaded!");
 
-        Harmony harmony = new (PluginGUID);
-        harmony.Patch(AccessTools.Method(typeof(StatsManager), "Start"), postfix: new HarmonyMethod(AccessTools.Method(typeof(Patches), "GameStart")));
-        harmony.Patch(AccessTools.Method(typeof(EnemyHunter), "OnTouchPlayerGrabbedObject"), postfix: new HarmonyMethod(typeof(Patches), "HunterOnTouchPlayerGrabbedObjectPostfix"));
-        harmony.Patch(AccessTools.Method(typeof(EnemyHunter), "ShootRPC"), postfix: new HarmonyMethod(typeof(Patches), "HunterShootRPCPostFix"));
-        harmony.Patch(AccessTools.Method(typeof(EnemyRigidbody), "OnCollisionStay"), postfix: new HarmonyMethod(typeof(Patches), "EnemyOnCollisionStayPostfix"));
+        Harmony = new (PluginGUID);
+        Patches.Patch();
+        HuntsmanPatches.Patch();
     }
 }

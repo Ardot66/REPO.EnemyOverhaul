@@ -2,4 +2,4 @@ bin/*
 Libraries/*
 obj/*
 *.sln
-REPOPath.txt
+LocalInfo.txt

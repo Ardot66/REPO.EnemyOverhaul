@@ -8,7 +8,9 @@ using System.Collections.Generic;
 namespace Ardot.REPO.REPOverhaul;
 
 [BepInPlugin(PluginGUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+#pragma warning disable BepInEx002 // Classes with BepInPlugin attribute must inherit from BaseUnityPlugin
 public class Plugin : BaseUnityPlugin
+#pragma warning restore BepInEx002 // Classes with BepInPlugin attribute must inherit from BaseUnityPlugin
 {
     public const string PluginGUID = "Ardot.REPO.REPOverhaul";
 

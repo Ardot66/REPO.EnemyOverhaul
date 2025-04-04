@@ -24,45 +24,45 @@
 
 ## Items
 
-- C.A.R.T.: 12000
-- POCKET C.A.R.T.: 4500
-- Recharge Drone: 1100
-- Feather Drone: 4500
-- Indestructible Drone: 7500
-- Roll Drone: 3000
-- Zero Gravity Drone: 7500
-- Extraction Tracker: 2000
-- Duct Taped Grenades: 450
-- Grenade: 650
-- Human Grenade: 500
-- Shockwave Grenade: 650
-- Stun Grenade: 650
-- Gun: 12000
-- Shotgun: 25000
-- Tranq Gun: 4500
-- Large Health Pack (100): 3000
-- Medium Health Pack (50): 1500
-- Small Health Pack (25): 750
-- Baseball Bat: 7500
-- Frying Pan: 7500
-- Inflatable Hammer: 3000
-- Sledge Hammer: 12000
-- Sword: 7500
-- Explosive Mine: 650
-- Shockwave Mine: 650
-- Stun Mine: 650
-- Zero Gravity Orb: 12000
-- Energy Crystal: 2000
-- Rubber Duck: 4500
-- Map Player Count Upgrade: 3000
-- Stamina Upgrade: 450
-- Extra Jump Upgrade: 3000
-- Range Upgrade: 2000
-- Strength Upgrade: 2000
-- Health Upgrade: 1100
-- Sprint Speed Upgrade: 2000
-- Tumble Launch Upgrade: 1100
-- Valuable Tracker: 4500
+- C.A.R.T. (Item Cart Medium): Value 9500 - 12000 Max 4 - 4
+- POCKET C.A.R.T. (Item Cart Small): Value 3500 - 4500 Max 2 - 2
+- Recharge Drone (Item Drone Battery): Value 850 - 1100 Max 1 - 1
+- Feather Drone (Item Drone Feather): Value 3500 - 4500 Max 1 - 1
+- Indestructible Drone (Item Drone Indestructible): Value 5500 - 7500 Max 1 - 1
+- Roll Drone (Item Drone Torque): Value 2000 - 3000 Max 1 - 1
+- Zero Gravity Drone (Item Drone Zero Gravity): Value 5500 - 7500 Max 1 - 1
+- Extraction Tracker (Item Extraction Tracker): Value 1200 - 2000 Max 1 - 1
+- Duct Taped Grenades (Item Grenade Duct Taped): Value 300 - 450 Max 3 - 3
+- Grenade (Item Grenade Explosive): Value 500 - 650 Max 3 - 3
+- Human Grenade (Item Grenade Human): Value 250 - 500 Max 3 - 3
+- Shockwave Grenade (Item Grenade Shockwave): Value 500 - 650 Max 3 - 3
+- Stun Grenade (Item Grenade Stun): Value 500 - 650 Max 3 - 3
+- Gun (Item Gun Handgun): Value 9500 - 12000 Max 1 - 1
+- Shotgun (Item Gun Shotgun): Value 18000 - 25000 Max 1 - 1
+- Tranq Gun (Item Gun Tranq): Value 3500 - 4500 Max 1 - 1
+- Large Health Pack (100) (Item Health Pack Large): Value 2000 - 3000 Max 3 - 3
+- Medium Health Pack (50) (Item Health Pack Medium): Value 1000 - 1500 Max 3 - 3
+- Small Health Pack (25) (Item Health Pack Small): Value 500 - 750 Max 3 - 3
+- Baseball Bat (Item Melee Baseball Bat): Value 5500 - 7500 Max 1 - 1
+- Frying Pan (Item Melee Frying Pan): Value 5500 - 7500 Max 1 - 1
+- Inflatable Hammer (Item Melee Inflatable Hammer): Value 2000 - 3000 Max 1 - 1
+- Sledge Hammer (Item Melee Sledge Hammer): Value 9500 - 12000 Max 1 - 1
+- Sword (Item Melee Sword): Value 5500 - 7500 Max 1 - 1
+- Explosive Mine (Item Mine Explosive): Value 500 - 650 Max 3 - 3
+- Shockwave Mine (Item Mine Shockwave): Value 500 - 650 Max 3 - 3
+- Stun Mine (Item Mine Stun): Value 500 - 650 Max 3 - 3
+- Zero Gravity Orb (Item Orb Zero Gravity): Value 9500 - 12000 Max 1 - 1
+- Energy Crystal (Item Power Crystal): Value 1200 - 2000 Max 6 - 4
+- Rubber Duck (Item Rubber Duck): Value 3500 - 4500 Max 1 - 1
+- Map Player Count Upgrade (Item Upgrade Map Player Count): Value 2000 - 3000 Max 1 - 1
+- Stamina Upgrade (Item Upgrade Player Energy): Value 300 - 450 Max 10 - 4
+- Extra Jump Upgrade (Item Upgrade Player Extra Jump): Value 2000 - 3000 Max 10 - 1
+- Range Upgrade (Item Upgrade Player Grab Range): Value 1200 - 2000 Max 10 - 3
+- Strength Upgrade (Item Upgrade Player Grab Strength): Value 1200 - 2000 Max 10 - 2
+- Health Upgrade (Item Upgrade Player Health): Value 850 - 1100 Max 10 - 2
+- Sprint Speed Upgrade (Item Upgrade Player Sprint Speed): Value 1200 - 2000 Max 10 - 3
+- Tumble Launch Upgrade (Item Upgrade Player Tumble Launch): Value 850 - 1100 Max 10 - 1
+- Valuable Tracker (Item Valuable Tracker): Value 3500 - 4500 Max 1 - 1
 
 ## Enemy Structures
 

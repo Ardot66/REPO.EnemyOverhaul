@@ -69,6 +69,9 @@ public static class Utils
 
     public static Value Value(float min, float max)
     {
-        return new Value() {valueMin = min, valueMax = max};
+        Value value = ScriptableObject.CreateInstance<Value>();
+        value.valueMin = min;
+        value.valueMax = max;
+        return value;
     }
 }

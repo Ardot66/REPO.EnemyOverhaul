@@ -38,9 +38,11 @@ public static class Patches
 
         ItemFix[] itemFixes =
         [
-            new ("EnergyCrystal", value: Utils.Value(600f, 1000f)),
-            new ("FeatherDrone", value: Utils.Value(8000f, 12000f)),
-            new ("")
+            new ("Item Power Crystal", Utils.Value(600f, 1000f)),
+            new ("Item Drone Feather", Utils.Value(12000f, 15000f)),
+            new ("Item Drone Indestructible", Utils.Value(15000f, 19000f)),
+            new ("Item Drone Battery", Utils.Value(2500f, 3500f)),
+            new ("Item Gun Tranq", Utils.Value(8000f, 11000f))
         ];
 
         for(int x = 0; x < itemFixes.Length; x++)
@@ -48,7 +50,10 @@ public static class Patches
             ItemFix fix = itemFixes[x];
 
             if(!StatsManager.instance.itemDictionary.TryGetValue(fix.Name, out Item item))
+            {
                 Plugin.Logger.LogWarning($"Item {fix.Name} not found while applying item fixes");
+                continue;
+            }
 
             if(fix.Value != null)
                 item.value = fix.Value;

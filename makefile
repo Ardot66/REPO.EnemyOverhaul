@@ -26,6 +26,6 @@ Push:
 Clean:
 	del $(DLL)
 	
-.IGNORE: Debug
+.IGNORE: Push
 
 .PHONY: Compile Debug Push 

@@ -66,4 +66,9 @@ public static class Utils
 
         return hurtColliders;
     }
+
+    public static Value Value(float min, float max)
+    {
+        return new Value() {valueMin = min, valueMax = max};
+    }
 }

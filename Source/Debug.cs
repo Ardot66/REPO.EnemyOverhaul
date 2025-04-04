@@ -39,7 +39,7 @@ public static class Debug
         foreach(string itemName in itemDictionary.Keys)
         {
             Item item = itemDictionary[itemName];
-            Plugin.Logger.LogInfo($"{item.itemName}: {item.value.valueMax}");    
+            Plugin.Logger.LogInfo($"{item.itemName} ({itemName}): Value {item.value.valueMin} - {item.value.valueMax} Max {item.maxAmount} - {item.maxAmountInShop}");    
         }
     }
 

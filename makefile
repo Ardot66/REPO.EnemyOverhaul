@@ -1,6 +1,7 @@
 SHELL = cmd
 
-REPO_PATH = D:\SteamLibrary\steamapps\common\REPO
+LOCAL_INFO = LocalInfo.txt
+REPO_PATH := $(strip $(file < $(LOCAL_INFO)))
 NAME = REPOverhaul
 DLL = bin\Debug\netstandard2.1\$(NAME).dll
 
@@ -10,14 +11,14 @@ Compile: $(DLL)
 
 $(DLL): Source/*.cs $(NAME).csproj
 	dotnet build
-	copy $(DLL) $(REPO_PATH)\BepInEx\plugins\$(NAME).dll /B
+	copy $(DLL) "$(REPO_PATH)\BepInEx\plugins\$(NAME).dll" /B
 	copy $(DLL) Libraries\$(NAME).dll
 
 Debug: 
 	$(REPO_PATH)\REPO.exe
 
 Push:
-	cd /D $(REPO_PATH)\BepInEx\plugins &&\
+	cd /D "$(REPO_PATH)\BepInEx\plugins" &&\
 		git add . && \
 		git commit -m "Recompiled plugins" &&\
 		git push origin main

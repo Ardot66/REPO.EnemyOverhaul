@@ -37,8 +37,7 @@
 - Mentalist
   - Needs big changes
 - Banger
-- Headman
-  - Change to aggro players only when holding items above a certain value?
+- Headman (Done!)
 - Robe
   - It wants to be part of the team, gets angry and enters rage if players try to run away from it?
     - Might also aggro if bumped by items held by player
@@ -141,3 +140,182 @@
    |   |   |- Particle Bits Short - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
    |   |   |- Particle Bits Far - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
    |   |   |- Particle Smoke - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+
+### Headman
+
+- Enemy - Head - UnityEngine.Transform, EnemyChecklist, Photon.Pun.PhotonView, EnemyParent
+   |- Enable - UnityEngine.Transform
+   |   |- Look At Transform - UnityEngine.Transform, UnityEngine.Animations.PositionConstraint
+   |   |- Mesh - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint
+   |   |   |- Animation System - UnityEngine.Transform, UnityEngine.Animator, EnemyHeadAnimationSystem, UnityEngine.AudioSource, Photon.Pun.PhotonView, UnityEngine.AudioLowPassFilter, AudioLowPassLogic
+   |   |   |   |- Main Animation - UnityEngine.Transform
+   |   |   |   |   |- Particle Positions - UnityEngine.Transform
+   |   |   |   |   |   |- Bot - UnityEngine.Transform
+   |   |   |   |   |   |- Top - UnityEngine.Transform
+   |   |   |   |   |- Bot Mesh - UnityEngine.Transform
+   |   |   |   |   |   |- Offset - UnityEngine.Transform
+   |   |   |   |   |   |   |- Bot Animation - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- Mesh - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- Enemy Head Bot - Bite - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Gum Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Gum Top Anim - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Gum Top Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Gum Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Gum Bot Anim - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Gum Bot Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Bot Anim - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Bot Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- Enemy Head Bot - Closed - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Head Bot_Mouth Closed - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Teeth Top_Mouth Closed - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Teeth Bot_Mouth Closed - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Gum Top_Mouth Closed - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Gum Bot_Mouth Closed - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Mouth Inside.003 - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Offset - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- Enemy Head Bot - Half Open - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Headman_Mouth Half Open 03 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Teeth Top_Mouth Half Open - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Teeth Bot_Mouth Half Open - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Head Bot_Mouth Half Open - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Mouth Inside.002 - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Gum Top_Mouth Closed.001 - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Gum Bot_Mouth Closed.001 - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Offset - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- Enemy Head Bot - Chase - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Offset - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Tilt - UnityEngine.Transform, EnemyHeadBotTilt
+   |   |   |   |   |   |   |   |   |   |   |   |- Head Bot - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Mouth Inside  - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Teeth Top_Chase - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Teeth Bot_Chase - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Gum Top_Chase - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Gum Bot_Chase - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- Enemy Head Bot - Idle - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Mouth Inside (plane) - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Head Bot - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Top Mesh - UnityEngine.Transform
+   |   |   |   |   |   |- Offset - UnityEngine.Transform
+   |   |   |   |   |   |   |- Top Animation - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- Mesh - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- Enemy Head Top - Chase - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- hair lump_static - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Eye Sockets - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Ears - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Headman_Mouth Half Open - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Head Top_Mouth Half Open - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Hair Static_Mouth Half Open - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Eye Right - UnityEngine.Transform, EnemyHeadEye
+   |   |   |   |   |   |   |   |   |   |   |- Eye R Tremble - UnityEngine.Transform, EnemyHeadEyeTremble
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye Pupil R Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, EnemyHeadPupil
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye R Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Eye Left - UnityEngine.Transform, EnemyHeadEye
+   |   |   |   |   |   |   |   |   |   |   |- Eye L Tremble - UnityEngine.Transform, EnemyHeadEyeTremble
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye Pupil L Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, EnemyHeadPupil
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye L Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Hair Static - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- Enemy Head Top - Idle - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- hair lump_static - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Eye Sockets - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Ears - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Hair Static - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Head Top - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Eye Right - UnityEngine.Transform, EnemyHeadEye
+   |   |   |   |   |   |   |   |   |   |   |- Eye R Tremble - UnityEngine.Transform, EnemyHeadEyeTremble
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye Pupil R Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, EnemyHeadPupil
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye R Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Eye Left - UnityEngine.Transform, EnemyHeadEye
+   |   |   |   |   |   |   |   |   |   |   |- Eye L Tremble - UnityEngine.Transform, EnemyHeadEyeTremble
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye Pupil L Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, EnemyHeadPupil
+   |   |   |   |   |   |   |   |   |   |   |   |- Eye L Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |- Hair Targets - UnityEngine.Transform
+   |   |   |   |- Logic - UnityEngine.Transform
+   |   |   |   |   |- Chase Loop 2 - UnityEngine.Transform, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic
+   |   |   |   |   |- Hurt Box - UnityEngine.Transform, UnityEngine.BoxCollider, HurtCollider
+   |   |   |   |   |- Audio Loop - UnityEngine.Transform, EnemyHeadLoop, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic
+   |   |   |   |   |- Kill Look At - UnityEngine.Transform
+   |   |   |   |   |- Vision - UnityEngine.Transform
+   |   |- Hair - UnityEngine.Transform
+   |   |   |- Hair 03 - UnityEngine.Transform
+   |   |   |   |- Mesh - UnityEngine.Transform, UnityEngine.SkinnedMeshRenderer
+   |   |   |   |- Rig - UnityEngine.Transform
+   |   |   |   |   |- Top - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |   |- Mid - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |   |- Root - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |- Follow - UnityEngine.Transform
+   |   |   |   |   |- Top - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Mid - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Top Target - UnityEngine.Transform
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Root - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Mid Target - UnityEngine.Transform
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |- Target - UnityEngine.Transform, EnemyHeadHairTarget
+   |   |   |   |   |- Lean - UnityEngine.Transform, EnemyHeadHairLean
+   |   |   |   |   |   |- Tilt - UnityEngine.Transform, EnemyHeadHairTilt
+   |   |   |- Hair 02 - UnityEngine.Transform
+   |   |   |   |- Mesh - UnityEngine.Transform, UnityEngine.SkinnedMeshRenderer
+   |   |   |   |- Rig - UnityEngine.Transform
+   |   |   |   |   |- Top - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |   |- Mid - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |   |- Root - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |- Follow - UnityEngine.Transform
+   |   |   |   |   |- Top - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Mid - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Top Target - UnityEngine.Transform
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Root - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Mid Target - UnityEngine.Transform
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |- Target - UnityEngine.Transform, EnemyHeadHairTarget
+   |   |   |   |   |- Lean - UnityEngine.Transform, EnemyHeadHairLean
+   |   |   |   |   |   |- Tilt - UnityEngine.Transform, EnemyHeadHairTilt
+   |   |   |- Hair 01 - UnityEngine.Transform
+   |   |   |   |- Mesh - UnityEngine.Transform, UnityEngine.SkinnedMeshRenderer
+   |   |   |   |- Rig - UnityEngine.Transform
+   |   |   |   |   |- Top - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |   |- Mid - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |   |- Root - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.Animations.ScaleConstraint
+   |   |   |   |- Follow - UnityEngine.Transform
+   |   |   |   |   |- Top - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Mid - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Top Target - UnityEngine.Transform
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Root - UnityEngine.Transform, EnemyHeadHair
+   |   |   |   |   |   |- Mid Target - UnityEngine.Transform
+   |   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |- Target - UnityEngine.Transform, EnemyHeadHairTarget
+   |   |   |   |   |- Lean - UnityEngine.Transform, EnemyHeadHairLean
+   |   |   |   |   |   |- Tilt - UnityEngine.Transform, EnemyHeadHairTilt
+   |   |- Attack Trigger - UnityEngine.Transform, UnityEngine.Rigidbody, UnityEngine.BoxCollider, RigidbodyFollow, EnemyTriggerAttack
+   |   |- Eye Target - UnityEngine.Transform, EnemyHeadEyeTarget
+   |   |   |- Idle - UnityEngine.Transform, EnemyHeadEyeIdle
+   |   |   |   |- Target Left - UnityEngine.Transform
+   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |- Target Right - UnityEngine.Transform
+   |   |   |   |   |- Debug - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |- Rigidbody - UnityEngine.Transform, Photon.Pun.PhotonView, Photon.Pun.PhotonTransformView, EnemyRigidbody, PhysGrabObject, NotValuableObject, RoomVolumeCheck, PhysGrabObjectImpactDetector, UnityEngine.Rigidbody
+   |   |   |- Collision Bot - UnityEngine.Transform, UnityEngine.CapsuleCollider, PhysGrabObjectCollider
+   |   |   |- Collision Top - UnityEngine.Transform, UnityEngine.CapsuleCollider, PhysGrabObjectCollider
+   |   |- Controller - UnityEngine.Transform, EnemyHeadController, Photon.Pun.PhotonView, Enemy, EnemyHealth, EnemyStateSpawn, EnemyStateDespawn, EnemyStateStunned, EnemyVision, EnemyPlayerDistance, EnemyOnScreen, EnemyPlayerRoom, UnityEngine.AI.NavMeshAgent, EnemyNavMeshAgent, EnemyAttackStuckPhysObject, EnemyStateRoaming, EnemyStateInvestigate, EnemyStateChaseBegin, EnemyStateSneak, EnemyStateChase, EnemyStateChaseSlow, EnemyStateChaseEnd, EnemyStateLookUnder
+   |   |   |- Visual - UnityEngine.Transform, Photon.Pun.PhotonView, EnemyHeadVisual
+   |   |   |   |- Up - UnityEngine.Transform, EnemyHeadUp
+   |   |   |   |   |- Rotation - UnityEngine.Transform
+   |   |   |   |   |   |- Look Under - UnityEngine.Transform, AnimatedOffset
+   |   |   |   |   |   |   |- Float - UnityEngine.Transform, EnemyHeadFloat
+   |   |   |   |   |   |   |   |- Noise - UnityEngine.Transform, AnimNoise
+   |   |   |   |   |   |   |   |   |- Chase Offset - UnityEngine.Transform, EnemyHeadChaseOffset
+   |   |   |   |   |   |   |   |   |   |- Tilt - UnityEngine.Transform, EnemyHeadTilt
+   |   |   |   |   |   |   |   |   |   |   |- Lean - UnityEngine.Transform, EnemyHeadLean
+   |   |   |   |   |   |   |   |   |   |   |   |- Follow Target - UnityEngine.Transform
+   |- Particles - UnityEngine.Transform
+   |   |- Death Smoke - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer, UnityEngine.Animations.ParentConstraint
+   |   |- Death Bits Short - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Death Bits Far - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Death Impact - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Death Eyes - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Teleport Bot - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Teleport Top - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer

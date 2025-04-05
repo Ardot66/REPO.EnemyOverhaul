@@ -9,7 +9,7 @@ All: Compile Push Debug
 
 Compile: $(DLL) 
 
-$(DLL): Source/*.cs $(NAME).csproj
+$(DLL): Source/*.cs Source/*/*.cs $(NAME).csproj
 	dotnet build
 	copy $(DLL) "$(REPO_PATH)\BepInEx\plugins\$(NAME).dll" /B
 	copy $(DLL) Libraries\$(NAME).dll

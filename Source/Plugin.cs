@@ -26,5 +26,6 @@ public class Plugin : BaseUnityPlugin
         Harmony = new (PluginGUID);
         Patches.Patch();
         HuntsmanPatches.Patch();
+        HeadmanPatches.Patch();
     }
 }

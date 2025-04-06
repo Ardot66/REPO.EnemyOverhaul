@@ -21,11 +21,11 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         Logger = base.Logger;
-        Logger.LogInfo($"Plugin {PluginGUID} is loaded!");
 
         Harmony = new (PluginGUID);
         Patches.Patch();
         HuntsmanPatches.Patch();
-        HeadmanPatches.Patch();
+        //HeadmanPatches.Patch(); Headman changes disabled for the moment (it needs buffs I can't give it)
+        PitsPatches.Patch();
     }
 }

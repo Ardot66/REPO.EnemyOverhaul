@@ -10,7 +10,7 @@ public static class GnomePatches
         // Reduces the damage gnomes do to items to a more reasonable amount
 
         GameObject gnome = Plugin.Enemies["gnome"];
-        List<HurtCollider> gnomeHurtColliders = Utils.GetHurtColliders(gnome);
+        List<HurtCollider> gnomeHurtColliders = Utils.GetHurtColliders(gnome.transform);
 
         for(int x = 0; x < gnomeHurtColliders.Count; x++)
         {

@@ -101,29 +101,47 @@ public static class Utils
         return enemyObjects;
     }
 
-    public static void ForObjectsInTree(GameObject root, Action<GameObject, int> action)
+    public static void ForObjectsInTree(Transform root, Action<Transform, int> action, int maxDepth = -1, IEnumerable<MonoBehaviour> forceInclude = null)
     {
-        Stack<ValueTuple<Transform, int>> branches = new ();
-        branches.Push((root.GetComponent<Transform>(), 0));
-        
-        while(branches.Count > 0)
+        Stack<ValueTuple<Transform, int>> callStack = new ();
+        Recurse(root, 0);
+
+        while(callStack.Count > 0)
         {
-            ValueTuple<Transform, int> branch = branches.Pop();
-            Transform transform = branch.Item1;
-            int depth = branch.Item2;
+            ValueTuple<Transform, int> callData = callStack.Pop();
+            action(callData.Item1, callData.Item2);
+        }
 
-            for(int x = 0; x < transform.childCount; x++)
-                branches.Push((transform.GetChild(x), depth + 1));
+        bool Recurse(Transform transform, int depth)
+        {
+            bool forceIncluded = false;
 
-            action(transform.gameObject, depth);
+            if(forceInclude != null)
+            {
+                foreach(MonoBehaviour component in forceInclude)
+                {
+                    if(transform.GetComponent(component.GetType()) == null)
+                        continue;
+
+                    forceIncluded = true;
+                }
+            }
+
+            for(int x = transform.childCount - 1; x >= 0; x --)
+                forceIncluded |= Recurse(transform.GetChild(x), depth + 1);
+
+            if(depth < maxDepth || maxDepth == -1 || forceIncluded)
+                callStack.Push((transform, depth));
+
+            return forceIncluded;
         }
     }
 
-    public static List<HurtCollider> GetHurtColliders(GameObject root)
+    public static List<HurtCollider> GetHurtColliders(Transform root)
     {
         List<HurtCollider> hurtColliders = new ();
         
-        ForObjectsInTree(root, (GameObject branch, int depth) => {
+        ForObjectsInTree(root, (Transform branch, int depth) => {
             if(branch.GetComponent<HurtCollider>() is HurtCollider hurtCollider)
                 hurtColliders.Add(hurtCollider);
         });

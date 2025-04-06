@@ -6,27 +6,25 @@ namespace Ardot.REPO.REPOverhaul;
 
 public static class Debug
 { 
-    public static void PrintTree(GameObject root, bool printComponents = true)
+    public static void PrintTree(Transform root, bool printComponents = true, int maxDepth = -1, IEnumerable<MonoBehaviour> forceInclude = null)
     {
         List<char> message = new ();
 
-        Utils.ForObjectsInTree(root, (GameObject branch, int depth) => {
-            Transform transform = branch.GetComponent<Transform>();
-
+        Utils.ForObjectsInTree(root, (Transform branch, int depth) => {
             message.Add('\n');
             for(int x = 0; x < depth; x++)
                 message.AddRange("   |");
-            message.AddRange($"- {transform.gameObject.name}");
+            message.AddRange($"- {branch.gameObject.name}");
 
             if(printComponents)
             {
                 message.AddRange(" -");
-                int componentCount = transform.gameObject.GetComponentCount();
+                int componentCount = branch.gameObject.GetComponentCount();
                 for(int x = 0; x < componentCount; x++)
-                    message.AddRange($" {transform.gameObject.GetComponentAtIndex(x).GetType()},");
+                    message.AddRange($" {branch.gameObject.GetComponentAtIndex(x).GetType()},");
                 message.RemoveAt(message.Count - 1);
             }
-        });
+        }, maxDepth, forceInclude);
 
         Plugin.Logger.LogInfo(new string([.. message]));
     }

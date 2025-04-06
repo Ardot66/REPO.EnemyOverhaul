@@ -1,6 +1,7 @@
 using UnityEngine;
+using UnityEngine.AI;
 using HarmonyLib;
-using System.Reflection;
+using System.Collections.Generic;
 
 namespace Ardot.REPO.REPOverhaul;
 
@@ -9,7 +10,8 @@ public static class HeadmanPatches
     const int 
     VisionTimerMeta = 0,
     LastVisionTime = 1,
-    State = 2;
+    State = 2,
+    Started = 3;
 
     private enum HeadmanState
     {
@@ -32,8 +34,24 @@ public static class HeadmanPatches
         );
     }
 
+    public static void Start(EnemyHeadController instance, Enemy enemy)
+    {
+        List<HurtCollider> hurtColliders = Utils.GetHurtColliders(enemy.Get<EnemyParent, Enemy>("EnemyParent").transform);
+        for(int x = 0; x < hurtColliders.Count; x++)
+        {
+            HurtCollider hurtCollider = hurtColliders[x];
+            hurtCollider.playerDamage = 100;
+        }
+    }
+
     public static void UpdatePostfix(EnemyHeadController __instance, Enemy ___Enemy)
     {
+        if(!__instance.GetMetadata(Started, false)) 
+        {
+            __instance.SetMetadata(Started, true);
+            Start(__instance, ___Enemy);
+        }
+
         HeadmanState state = __instance.GetMetadata(State, HeadmanState.Roaming);
         float visionTimer = __instance.GetMetadata<float>(VisionTimerMeta);
 

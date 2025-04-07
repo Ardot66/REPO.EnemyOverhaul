@@ -35,12 +35,26 @@
 - Chef (Pretty good already)
 - Bowtie (Kinda meh, could use more of a gimmick)
 - Mentalist
-  - Needs big changes
+  - Controls gravity across the entire level, control of gravity gets more powerful as level continues eventually causing game over if too long spent between extractions.
+    - Stays in one location where it congregates with other mentalists and is generally passive unless a player takes out a weapon or hits it with an item.
+    - Occasionally teleports to another location with other mentalists (once every two or three mins?)
+      - Make teleport location be somewhat near a player to increase the chance they are found on large maps?
+    - Increased gravity slows players and reduces item and cart mobility.
+    - Gravity is completely disabled or even inverted at times, players will take some damage thrown against the ground unless they position well to fall little distance.
+    - Gravity control will reduce significantly after every extraction, and increase extra quickly after the last extraction, giving little time for players to escape.
+    - Gravity control can be interrupted and charge speed reduced when mentalists are killed.
+    - Limit respawns to one or two per extraction, disable despawning.
+    - Keep original attack but buff damage and speed when aggroed directly. 
 - Banger
-- Headman (Done!)
+- Headman
+  - Buff damage and speed to balance new aggro system.
+  - Change back to instant aggro after last extraction, maybe reduce damage and speed a little at this point.
 - Robe
-  - It wants to be part of the team, gets angry and enters rage if players try to run away from it?
-    - Might also aggro if bumped by items held by player
+  - It wants to be part of the team.
+    - If players damage items too much around it, it will aggro and chase players for a while, doing pretty high damage.
+    - If players hit it with items or the cart it will also aggro.
+    - It will occasionally attempt to pick up and move items to help players, if players grab the item while it is doing this it will aggro.
+    - Should pathfind to follow a particular player and get in their way a decent bit.
 - Huntsman (Fixed!)
 - Reaper
   - Only aggro players not moving?
@@ -49,7 +63,7 @@
   - Really hates extraction points, will approach and destroy them.
     - An indicator that a trudge is approaching an extraction point? (e.g. Unidentified object approaching extraction, distance 10m)
     - Approaches the ship in the same way if no extractions are opened, preventing cheese where players stack stuff near unopened extractions.
-    - When an extraction is destroyed, the amount needed is added to the next one?
+    - When an extraction is destroyed, the amount needed is added to the next one? (plus a large fee that is taken directly from player money totall)
     - Will now only aggro players if they attack it or stay directly in front of it for a time.
       - This gives players the choice between extracting quickly and fighting the big boss enemy.
 
@@ -319,3 +333,141 @@
    |   |- Death Eyes - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
    |   |- Teleport Bot - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
    |   |- Teleport Top - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+
+### Robe
+
+- Enemy - Robe - UnityEngine.Transform, EnemyChecklist, Photon.Pun.PhotonView, EnemyParent
+   |- Particles - UnityEngine.Transform, EnemyRobePersistent
+   |   |- Constant Smoke - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Teleport - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Death Particles - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint
+   |   |   |- Death Mask Top - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Mask Bot - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Impact - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Bits Far - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Bits Short - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Smoke - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |- Enable - UnityEngine.Transform
+   |   |- Controller - UnityEngine.Transform, Photon.Pun.PhotonView, EnemyRobe, Enemy, EnemyHealth, EnemyStateSpawn, EnemyStateDespawn, EnemyStateStunned, EnemyVision, EnemyStateInvestigate, UnityEngine.AI.NavMeshAgent, EnemyNavMeshAgent, EnemyOnScreen, EnemyPlayerDistance, EnemyPlayerRoom
+   |   |   |- Follow - UnityEngine.Transform
+   |   |- Visual - UnityEngine.Transform, EnemyRobeAnim, UnityEngine.Animations.ParentConstraint, UnityEngine.Animator
+   |   |   |- Main Animation - UnityEngine.Transform
+   |   |   |   |- Robe Hand - UnityEngine.Transform
+   |   |   |   |   |- _____________________________A - UnityEngine.Transform
+   |   |   |   |   |   |- Arm - UnityEngine.Transform
+   |   |   |   |   |   |   |- Robe Hand Base - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- Hand Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- _____________________________H - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- Hand - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- Robe Hand Base - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- Hand Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________T - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Thumb Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Jitter - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Thumb Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________T2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Thumb Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Thumb Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________F3 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Finger 3 Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Finger 3 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________F3_2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Finger 3 Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Finger 3 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________F2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Finger 2 Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Finger 2 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________F2_2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Finger 2 Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Finger 2 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________F1 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Finger 1 Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Finger 1 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________F1_2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Finger 1 Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Finger 1 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |- Robe Hand (1) - UnityEngine.Transform
+   |   |   |   |   |- _____________________________A - UnityEngine.Transform
+   |   |   |   |   |   |- Arm - UnityEngine.Transform
+   |   |   |   |   |   |   |- Robe Hand Base - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- Hand Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- _____________________________H - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- Hand - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- Robe Hand Base - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- Hand Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________T - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Thumb Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Jitter - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Thumb Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________T2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Thumb Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Thumb Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________F3 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Finger 3 Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Finger 3 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________F3_2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Finger 3 Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Finger 3 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________F2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Finger 2 Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Finger 2 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________F2_2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Finger 2 Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Finger 2 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- ______________________________F1 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- Finger 1 Bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger S - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- Finger 1 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- ______________________________F1_2 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- Finger 1 Top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Robe Hand Finger E - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |- Finger 1 Bot Greybox - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |- Robe Hand Position (1) - UnityEngine.Transform
+   |   |   |   |- POSES________________________________________ - UnityEngine.Transform
+   |   |   |   |   |- Body Closed - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Body Open - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Body Attack - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Head - UnityEngine.Transform
+   |   |   |   |   |   |- Vision Origin - UnityEngine.Transform
+   |   |   |   |   |   |- Head Shake - UnityEngine.Transform
+   |   |   |   |   |   |   |- Jaw - Closed - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- mesh_jaw closed - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- Jaw - Open - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- Jaw Shake - Open - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- mesh_jaw open - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- Jaw - Attack - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- Jaw Shake - Attack - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- mesh_jaw attack - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- Head Top - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- End Piece - UnityEngine.Transform
+   |   |   |   |   |   |- Target - UnityEngine.Transform
+   |   |   |   |   |   |- Source - UnityEngine.Transform
+   |   |   |   |   |   |   |- Mesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Audio Hand Idle - UnityEngine.Transform, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic
+   |   |   |   |   |- Audio Hand Aggressive - UnityEngine.Transform, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic
+   |   |   |   |- Hurt Collider - UnityEngine.Transform, UnityEngine.BoxCollider, HurtCollider
+   |   |   |- Particle Constraint - UnityEngine.Transform
+   |   |   |- Spot Light - UnityEngine.Transform, UnityEngine.Light
+   |   |   |- On Screen Point Top - UnityEngine.Transform
+   |   |   |- On Screen Point Mid - UnityEngine.Transform
+   |   |   |- On Screen Point Bot - UnityEngine.Transform
+   |   |- Rigidbody - UnityEngine.Transform, Photon.Pun.PhotonView, Photon.Pun.PhotonTransformView, EnemyRigidbody, PhysGrabObject, NotValuableObject, RoomVolumeCheck, PhysGrabObjectImpactDetector, UnityEngine.Rigidbody
+   |   |   |- Collider - UnityEngine.Transform, UnityEngine.CapsuleCollider, PhysGrabObjectCapsuleCollider, PhysGrabObjectCollider
+   |   |   |- Center - UnityEngine.Transform
+   |   |- Audio Target Player - UnityEngine.Transform, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic, UnityEngine.Animations.ParentConstraint
+   |   |- Audio Stun - UnityEngine.Transform, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic, UnityEngine.Animations.ParentConstraint
+   |- DEBUG PLANE - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.MeshCollider, DisableInGame

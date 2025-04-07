@@ -1,14 +1,41 @@
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.AI;
+using Photon.Pun;
 
 namespace Ardot.REPO.REPOverhaul;
 
 public static class RobePatches
 {
-    public const int
-        RobeDataMeta = 0;
+    public static void Patch ()
+    {
+        Plugin.Harmony.Patch(
+            AccessTools.Method(typeof(EnemyRobe), "Awake"),
+            prefix: new HarmonyMethod(typeof(RobePatches), "AwakePrefix")
+        );  
+        Plugin.Harmony.Patch(
+            AccessTools.Method(typeof(EnemyRobePersistent), "Update"),
+            prefix: new HarmonyMethod(typeof(RobePatches), "PersistentUpdatePrefix")
+        );
+    }
 
+    public static bool AwakePrefix(EnemyRobe __instance)
+    {
+        GameObject.Destroy(__instance.robeAnim);
+        __instance.gameObject.AddComponent<RobeOverride>();
+        GameObject.Destroy(__instance);
+
+        return false;
+    }
+
+    public static bool PersistentUpdatePrefix()
+    {
+        return false;
+    }
+}
+
+public class RobeOverride : MonoBehaviour
+{
     public enum RobeState
     {
         Idle,
@@ -19,101 +46,124 @@ public static class RobePatches
         Attack,
     }
 
-    public class RobeData
+    public RobeState State = RobeState.Idle;
+    public float StateTimer = 0f;
+    public float LastVisionTimer = float.PositiveInfinity;
+    public bool VisionImpulse = false;
+    public bool StateImpulse = true;
+    public Enemy Enemy;
+    public PhotonView PhotonView;
+    public PlayerAvatar FollowPlayer;
+
+    public bool ConsumeStateImpulse()
     {
-        public RobeState State = RobeState.Idle;
-        public float StateTimer = 0f;
-        public bool VisionImpulse = false;
-        private bool _stateImpulse = true;
-
-        public bool StateImpulse()
-        {
-            bool started = _stateImpulse;
-            _stateImpulse = false;
-            return started;
-        }
-
-        public void SetState(RobeState state, float stateTimer)
-        {
-            if (state == State || !SemiFunc.IsMasterClientOrSingleplayer())
-                return;
-
-            _stateImpulse = true;
-            State = state;
-            StateTimer = stateTimer;
-        }
-
-        public void SetStateRPCPrefix(RobeState state)
-        {
-            
-        }
+        bool started = StateImpulse;
+        StateImpulse = false;
+        return started;
     }
 
-    public static void Patch ()
+    public void SetState(RobeState state, float stateTimer)
     {
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(EnemyRobe), "Update"),
-            prefix: new HarmonyMethod(typeof(RobePatches), "UpdatePrefix")
-        );  
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(EnemyRobe), "OnVision"),
-            prefix: new HarmonyMethod(typeof(RobePatches), "OnVisionPrefix")
-        );
+        if (state == State || !SemiFunc.IsMasterClientOrSingleplayer())
+            return;
+
+        Plugin.Logger.LogInfo($"{State}");
+        StateImpulse = true;
+        State = state;
+        StateTimer = stateTimer;
+
+        if(GameManager.Multiplayer())
+            PhotonView.RPC("SetStateRPC", RpcTarget.Others, state, stateTimer);
     }
 
-    public static bool OnVisionPrefix(EnemyRobe __instance)
+    [PunRPC]
+    private void SetStateRPC(RobeState state, float stateTimer)
     {
-        RobeData robe = __instance.GetMetadata<RobeData>(RobeDataMeta, null);
-        robe.VisionImpulse = true;
-
-        return false;
+        StateImpulse = true;
+        State = state;
+        StateTimer = stateTimer;
     }
 
-    public static bool UpdatePrefix(EnemyRobe __instance, Enemy ___enemy)
+    public void Awake()
     {
-        RobeData data = __instance.GetMetadata<RobeData>(RobeDataMeta, null);
+        Enemy = GetComponent<Enemy>();
+        PhotonView = GetComponent<PhotonView>();
+    }
+
+    public void Start()
+    {
+        EnemyVision vision = (EnemyVision)Enemy.Get("Vision");
+        vision.onVisionTriggered.AddListener(() => VisionImpulse = true);
+    }
+
+    public void Update()
+    {
+        EnemyNavMeshAgent enemyAgent = (EnemyNavMeshAgent)Enemy.Get("NavMeshAgent");
+        EnemyVision vision = (EnemyVision)Enemy.Get("Vision");
+        StateTimer -= Time.deltaTime;
+        LastVisionTimer += Time.deltaTime;
+
         
-        if(data == null)
-            data = new RobeData ();
 
-        NavMeshAgent agent = (NavMeshAgent)___enemy.Get("NavMeshAgent");
-        Rigidbody rigidbody = (Rigidbody)___enemy.Get("Rigidbody");
-        data.StateTimer -= Time.deltaTime;
-
-        switch (data.State)
+        switch (State)
         {
             case RobeState.Idle:
             {
-                if(data.StateImpulse())
-                    agent.ResetPath();
+                if(ConsumeStateImpulse())
+                    enemyAgent.ResetPath();
 
-                if(data.StateTimer <= 0)
-                    data.SetState(RobeState.Roam, Random.Range(1f, 4f));
+                if(StateTimer <= 0)
+                {
+                    if(FollowPlayer != null)
+                        SetState(RobeState.FollowPlayer, 5f);
+                    else
+                        SetState(RobeState.Roam, Random.Range(4f, 9f));
+                }
                 break;
             }
             case RobeState.Roam:
             {
-                if(data.StateImpulse())
+                if(ConsumeStateImpulse())
                 {
-                    LevelPoint levelPoint = SemiFunc.LevelPointGet(__instance.transform.position, 5f, 15f) ?? SemiFunc.LevelPointGet(__instance.transform.position, 0f, 999f);
-                    
-                    NavMeshHit navMeshHit;
-                    if (levelPoint != null && 
-                        NavMesh.SamplePosition(levelPoint.transform.position + Random.insideUnitSphere * 3f, out navMeshHit, 5f, -1) && 
-                        Physics.Raycast(navMeshHit.position, Vector3.down, 5f, LayerMask.GetMask(["Default"]))
-                    )
-                        agent.SetDestination(navMeshHit.position);
+                    LevelPoint levelPoint = SemiFunc.LevelPointGet(transform.position, 5f, 15f) ?? SemiFunc.LevelPointGet(transform.position, 0f, 999f);
+
+                    if(levelPoint != null && Utils.FindNavPosition(levelPoint.transform.position + Random.insideUnitSphere * 3f, out Vector3 navPosition))
+                        enemyAgent.SetDestination(navPosition);
+                    else
+                        StateImpulse = true;
                 }
 
-                if(agent.pathStatus == NavMeshPathStatus.PathComplete || data.StateTimer <= 0)
-                    data.SetState(RobeState.Idle, Random.Range(2f, 4f));
+                if(VisionImpulse)
+                {
+                    LastVisionTimer = 0f;
+                    FollowPlayer = (PlayerAvatar)vision.Get("onVisionTriggeredPlayer");
+                    SetState(RobeState.FollowPlayer, 5f);
+                }
+
+                if(!enemyAgent.HasPath() || StateTimer <= 0)
+                    SetState(RobeState.Idle, Random.Range(1f, 2f));
+
+                break;
+            }
+            case RobeState.FollowPlayer:
+            {
+                if(ConsumeStateImpulse())
+                {
+                    if(Utils.FindNavPosition(FollowPlayer.transform.position + Random.onUnitSphere * 3, out Vector3 navPosition))
+                        enemyAgent.SetDestination(navPosition);
+                    else
+                        StateImpulse = true;
+                }
+
+                if(StateTimer <= 0)
+                {
+                    SetState(RobeState.Idle, Random.Range(0.5f, 1f));
+                }
 
                 break;
             }
         }
 
-        data.VisionImpulse = false; 
-
-        return false;
+        VisionImpulse = false; 
     }
 }

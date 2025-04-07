@@ -3,6 +3,7 @@ using System;
 using HarmonyLib;
 using UnityEngine;
 using System.Reflection;
+using UnityEngine.AI;
 
 namespace Ardot.REPO.REPOverhaul;
 
@@ -69,6 +70,17 @@ public static class Utils
             if(component == null)
                 Metadata.Remove(component);
     }
+
+    public static bool FindNavPosition(Vector3 checkPosition, out Vector3 navPosition, float maxDistance = 5f, float maxGroundDistance = 5f)
+    {
+        NavMeshHit navHit;
+        bool positionValid = 
+            NavMesh.SamplePosition(checkPosition, out navHit, maxDistance, -1) && 
+            Physics.Raycast(navHit.position, Vector3.down, maxGroundDistance, LayerMask.GetMask("Default"));
+
+        navPosition = navHit.position;
+        return positionValid;
+    } 
 
     public static Dictionary<string, GameObject> GetEnemies()
     {

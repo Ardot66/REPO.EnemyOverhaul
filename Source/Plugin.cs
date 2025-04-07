@@ -27,5 +27,6 @@ public class Plugin : BaseUnityPlugin
         HuntsmanPatches.Patch();
         //HeadmanPatches.Patch(); Headman changes disabled for the moment (it needs buffs I can't give it)
         PitsPatches.Patch();
+        // RobePatches.Patch();
     }
 }

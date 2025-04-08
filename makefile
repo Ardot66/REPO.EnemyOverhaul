@@ -15,7 +15,7 @@ $(DLL): Source/*.cs Source/*/*.cs $(NAME).csproj
 	copy $(DLL) Libraries\$(NAME).dll
 
 Debug: 
-	$(REPO_PATH)\REPO.exe
+	$(REPO_PATH)\REPO.exe $(ARGS)
 
 Push:
 	cd /D "$(REPO_PATH)\BepInEx\plugins" &&\

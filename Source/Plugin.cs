@@ -25,8 +25,8 @@ public class Plugin : BaseUnityPlugin
         Harmony = new (PluginGUID);
         Patches.Patch();
         HuntsmanPatches.Patch();
-        //HeadmanPatches.Patch(); Headman changes disabled for the moment (it needs buffs I can't give it)
+        HeadmanPatches.Patch();
         PitsPatches.Patch();
-        // RobePatches.Patch();
+        RobePatches.Patch();
     }
 }

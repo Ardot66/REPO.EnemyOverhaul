@@ -11,7 +11,8 @@ public static class HeadmanPatches
     VisionTimerMeta = 0,
     LastVisionTime = 1,
     State = 2,
-    Started = 3;
+    Started = 3,
+    HurtColliders = 4;
 
     private enum HeadmanState
     {
@@ -36,12 +37,7 @@ public static class HeadmanPatches
 
     public static void Start(EnemyHeadController instance, Enemy enemy)
     {
-        List<HurtCollider> hurtColliders = Utils.GetHurtColliders(enemy.Get<EnemyParent, Enemy>("EnemyParent").transform);
-        for(int x = 0; x < hurtColliders.Count; x++)
-        {
-            HurtCollider hurtCollider = hurtColliders[x];
-            hurtCollider.playerDamage = 100;
-        }
+        instance.SetMetadata(HurtColliders, Utils.GetHurtColliders(enemy.Get<EnemyParent, Enemy>("EnemyParent").transform));
     }
 
     public static void UpdatePostfix(EnemyHeadController __instance, Enemy ___Enemy)
@@ -58,6 +54,17 @@ public static class HeadmanPatches
         EnemyVision vision = (EnemyVision)___Enemy.Get("Vision");
         PlayerAvatar visionPlayer = vision.Get<PlayerAvatar, EnemyVision>("onVisionTriggeredPlayer");
         EnemyStateInvestigate investigate = __instance.GetComponent<EnemyStateInvestigate>();
+
+        if(___Enemy.CurrentState == EnemyState.Chase || ___Enemy.CurrentState == EnemyState.ChaseSlow)
+        {
+            List<HurtCollider> hurtColliders = __instance.GetMetadata<List<HurtCollider>>(HurtColliders);
+            for(int x = 0; x < hurtColliders.Count; x++)
+                hurtColliders[x].playerDamage = 80;
+
+            SetMovement(__instance, ___Enemy, 12, 20);
+        }
+        else
+            SetMovement(__instance, ___Enemy, 6, 10);
 
         switch(state)
         {
@@ -92,12 +99,14 @@ public static class HeadmanPatches
                 if(visionTimer > 0.7f)
                     state = HeadmanState.Pissed;
                 if(visionTimer < 0.4f)
-                    state = HeadmanState.Pissed;
+                    state = HeadmanState.Annoyed;
                 break;
             case HeadmanState.Pissed:
+            {
                 if(visionTimer < 0.5f)
                     state = HeadmanState.Roaming;
                 break;
+            }
         }
 
         __instance.SetMetadata(State, state);
@@ -161,5 +170,16 @@ public static class HeadmanPatches
 		}
 
         return false;
+    }
+
+    public static void SetMovement(EnemyHeadController instance, Enemy enemy, float speed, float acceleration)
+    {
+        EnemyRigidbody rigidbody = (EnemyRigidbody)enemy.Get("Rigidbody");
+        EnemyStateChase chase = instance.GetComponent<EnemyStateChase>();
+
+        rigidbody.OverrideFollowPosition(1, speed);
+        chase.Speed = speed;
+        chase.Acceleration = acceleration;
+        instance.Visual.PositionFollowChasing = speed;
     }
 }

@@ -17,15 +17,6 @@ public static class Patches
         Plugin.Enemies = Utils.GetEnemies();
 
         GnomePatches.GameStart();
-        ShopPatches.GameStart();
-
-        // RunManager.instance.ResetProgress();
-        // SemiFunc.SaveFileCreate();
-        // GameManager.instance.localTest = false;
-		// RunManager.instance.Set("waitToChangeScene", true);
-		// MainMenuOpen.instance.NetworkConnect();
-		// SteamManager.instance.LockLobby();
-		// DataDirector.instance.RunsPlayedAdd();
-        // RunManager.instance.ChangeLevel(true, false, RunManager.ChangeLevelType.Shop);
+        ShopPatches.GameStart();  
     }   
 }

@@ -58,6 +58,7 @@ public class RobeOverride : MonoBehaviour
     public float LastFocusedPlayerVisionTimer = float.PositiveInfinity;
     public bool VisionImpulse = false;
     public bool TouchedImpulse = false;
+    public bool ObjectBreakImpulse = false;
     public bool StateImpulse = true;
     public bool StateEndedImpulse = false;
     public Enemy Enemy;
@@ -222,7 +223,53 @@ public class RobeOverride : MonoBehaviour
             }
             case RobeState.HelpPlayer:
             {
-                
+                if(ConsumeStateImpulse())
+                {
+                    OverrideMovement(0.5f, 2, StateTimer);
+                    EnemyAgent.ResetPath();
+                    StateInternalTimer = 0;
+
+                    if(TargetValuable != null)
+                    {
+                        PhysGrabObjectImpactDetector impactDetector = (PhysGrabObjectImpactDetector)TargetValuable.Get<PhysGrabObject, ValuableObject>("physGrabObject").Get("impactDetector");
+                        impactDetector.onAllImpacts.AddListener(OnObjectBreak);
+                    }
+                }
+
+                if(TargetValuable != null)
+                {
+                    LookAt(TargetValuable.transform.position);
+                    Rigidbody targetValuableRigidbody = (Rigidbody)TargetValuable.Get("rb");
+
+                    // This might need to reduce if the mass of the object is low
+                    targetValuableRigidbody.AddForce(Vector3.up * 10, ForceMode.Force);
+
+                    float distanceToValuable = Vector3.Distance(TargetValuable.transform.position, transform.position);
+                    if((distanceToValuable < 1.4f || distanceToValuable > 1.6f) && StateInternalTimer <= 0)
+                    {
+                        StateInternalTimer = 0.1f;
+                        Utils.FindNavPosition(TargetValuable.transform.position + (transform.position - TargetValuable.transform.position).normalized * 1.5f, out Vector3 navPosition, 0.5f);
+                        EnemyAgent.SetDestination(navPosition);
+                    }
+                }
+
+                if(ObjectBreakImpulse)
+                    SetState(RobeState.ChaseBegin, 1.5f);
+                else if((PhysGrabObject)FocusedPlayer.physGrabber.Get("grabbedPhysGrabObject") == null)
+                    SetState(RobeState.Idle, 1f);
+                if(StateTimer <= 0)
+                    SetState(RobeState.Idle, 1f);
+
+                if(StateEndedImpulse)
+                {
+                    EndMovementOverride();
+
+                    if(TargetValuable != null)
+                    {
+                        PhysGrabObjectImpactDetector impactDetector = (PhysGrabObjectImpactDetector)TargetValuable.Get<PhysGrabObject, ValuableObject>("physGrabObject").Get("impactDetector");
+                        impactDetector.onAllImpacts.RemoveListener(OnObjectBreak);
+                    }
+                }
 
                 break;
             }
@@ -289,7 +336,10 @@ public class RobeOverride : MonoBehaviour
             case RobeState.Attack:
             {
                 if(ConsumeStateImpulse())
+                {
                     AttackAnimation();
+                    HurtCollider.playerDamage = 120;
+                }
 
                 LookAt(FocusedPlayer.transform.position);
 
@@ -301,7 +351,10 @@ public class RobeOverride : MonoBehaviour
             case RobeState.AttackUnder:
             {
                 if(ConsumeStateImpulse())
+                {
                     AttackUnderAnimation();
+                    HurtCollider.playerDamage = 80;
+                }
 
                 LookAt(FocusedPlayer.transform.position);
 
@@ -334,6 +387,7 @@ public class RobeOverride : MonoBehaviour
         VisionImpulse = false; 
         TouchedImpulse = false;
         StateEndedImpulse = false;
+        ObjectBreakImpulse = false;
     }
 
     public bool CheckTouchLogic()
@@ -352,6 +406,11 @@ public class RobeOverride : MonoBehaviour
         Vector3 agentVelocity = EnemyAgent.Get<Vector3, EnemyNavMeshAgent>("AgentVelocity").normalized;
         if (agentVelocity.magnitude > 0.1f)
             LookInDirection(agentVelocity);
+    }
+
+    public void OnObjectBreak()
+    {
+        ObjectBreakImpulse = true;
     }
     
     public void LookAt(Vector3 point)

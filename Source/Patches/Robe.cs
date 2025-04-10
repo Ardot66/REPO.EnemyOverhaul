@@ -42,6 +42,7 @@ public class RobeOverride : MonoBehaviour
     public enum RobeState
     {
         Idle,
+        Shifty,
         Roam,
         FollowPlayer,
         HelpPlayer,
@@ -56,6 +57,9 @@ public class RobeOverride : MonoBehaviour
     public float StateTimer = 0f;
     public float StateInternalTimer = 0f;
     public float LastFocusedPlayerVisionTimer = float.PositiveInfinity;
+    public float ItemBreakLogicTimer = 0f;
+    public float InterestTimer = float.PositiveInfinity;
+    public bool IgnoringPlayers = false; 
     public bool VisionImpulse = false;
     public bool TouchedImpulse = false;
     public bool ObjectBreakImpulse = false;
@@ -73,6 +77,7 @@ public class RobeOverride : MonoBehaviour
     public Animator Animator;
     public HurtCollider HurtCollider;
     public ValuableObject TargetValuable;
+    public List<ValuableObject> TrackedValuables = new ();
     public Quaternion RotationTarget;
 
     public bool ConsumeStateImpulse()
@@ -91,7 +96,7 @@ public class RobeOverride : MonoBehaviour
         StateEndedImpulse = true;
         State = state;
         StateTimer = stateTimer;
-        Plugin.Logger.LogInfo($"{State}, {StateTimer}");
+        Plugin.Logger.LogInfo($"{State}");
 
         if(GameManager.Multiplayer())
             PhotonView.RPC("SetStateRPC", RpcTarget.Others, state, stateTimer);
@@ -137,10 +142,29 @@ public class RobeOverride : MonoBehaviour
     {
         StateTimer -= Time.deltaTime;
         StateInternalTimer -= Time.deltaTime;
+        InterestTimer -= Time.deltaTime;
         LastFocusedPlayerVisionTimer += Time.deltaTime;
 
+        if(IgnoringPlayers)
+            VisionImpulse = false;
+
         if(VisionImpulse && (PlayerAvatar)Vision.Get("onVisionTriggeredPlayer") == FocusedPlayer || TouchedImpulse && TouchedPlayer == FocusedPlayer)
+        {
             LastFocusedPlayerVisionTimer = 0;
+            InterestTimer = Random.Range(60f, 240f);
+        }
+
+        if(InterestTimer <= 0)
+        {
+            if(!IgnoringPlayers)
+                InterestTimer = Random.Range(20f, 40f);
+            else
+                InterestTimer = float.PositiveInfinity;
+
+            IgnoringPlayers = !IgnoringPlayers;
+        }
+
+        ItemBreakTrackingLogic();
 
         switch (State)
         {
@@ -153,18 +177,20 @@ public class RobeOverride : MonoBehaviour
                     LookAt(FocusedPlayer.transform.position);
 
                 if(CheckTouchLogic()) {}
+                else if(ObjectBreakImpulse)
+                    SetState(RobeState.ChaseBegin, Random.Range(0.75f, 1.25f));
                 else if(StateTimer <= 0)
                 {
                     if(FocusedPlayer != null)
                     {
                         float playerDistance = Vector3.Distance(transform.position, FocusedPlayer.transform.position);
-                        PhysGrabObject playerGrabbedObject = (PhysGrabObject)FocusedPlayer.physGrabber.Get("grabbedPhysGrabObject");
-                        if(playerDistance > 3.5f || playerDistance < 2.5f)
-                            SetState(RobeState.FollowPlayer, Random.Range(2f, 4f));
-                        else if (playerGrabbedObject != null && (TargetValuable = playerGrabbedObject.GetComponent<ValuableObject>()) != null)
-                            SetState(RobeState.HelpPlayer, 1f);
+    
+                        if (FocusedPlayer.physGrabber.grabbed && FocusedPlayer.physGrabber.Get("grabbedPhysGrabObject") is PhysGrabObject playerGrabbedObject && (TargetValuable = playerGrabbedObject.GetComponent<ValuableObject>()) != null)
+                            SetState(RobeState.HelpPlayer, 30f);
+                        else if(playerDistance > 3.5f || playerDistance < 2.5f)
+                            SetState(RobeState.FollowPlayer, Random.Range(10f, 12f));
                         else
-                            SetState(RobeState.Roam, Random.Range(0.25f, 1f));
+                            SetState(RobeState.Shifty, 1f);
                     }
                     else
                         SetState(RobeState.Roam, Random.Range(4f, 9f));
@@ -172,16 +198,36 @@ public class RobeOverride : MonoBehaviour
 
                 break;
             }
+            case RobeState.Shifty:
+            {
+                if(ConsumeStateImpulse())
+                {
+                    Vector3 targetPosition = transform.position + Random.insideUnitSphere * 0.5f;
+
+                    if(Utils.FindNavPosition(targetPosition, out Vector3 navPosition, 1f))
+                        EnemyAgent.SetDestination(navPosition);
+
+                    OverrideMovement(0.5f, 1f, StateTimer);
+                }
+
+                LookAt(FocusedPlayer.transform.position);
+
+                if(ObjectBreakImpulse)
+                    SetState(RobeState.ChaseBegin, Random.Range(0.75f, 1.25f));
+                else if(StateTimer <= 0)
+                    SetState(RobeState.Idle, 1f);
+                    
+                if(StateEndedImpulse)
+                    EndMovementOverride();
+
+                break;
+            }
             case RobeState.Roam:
             {
                 if(ConsumeStateImpulse())
                 {
-                    LevelPoint levelPoint = SemiFunc.LevelPointGet(transform.position, 5f, 15f) ?? SemiFunc.LevelPointGet(transform.position, 0f, 999f);
-
-                    if(levelPoint != null && Utils.FindNavPosition(levelPoint.transform.position + Random.insideUnitSphere * 3f, out Vector3 navPosition))
+                    if(Utils.FindNavPosition(transform.position + Random.insideUnitSphere * 10f, out Vector3 navPosition))
                         EnemyAgent.SetDestination(navPosition);
-                    else
-                        StateImpulse = true;
                 }
 
                 NormalRotationLogic();
@@ -191,8 +237,10 @@ public class RobeOverride : MonoBehaviour
                 {
                     LastFocusedPlayerVisionTimer = 0f;
                     FocusedPlayer = (PlayerAvatar)Vision.Get("onVisionTriggeredPlayer");
-                    SetState(RobeState.FollowPlayer, 5f);
+                    SetState(RobeState.FollowPlayer, 12f);
                 }
+                else if(ObjectBreakImpulse)
+                    SetState(RobeState.ChaseBegin, Random.Range(0.75f, 1.25f));
                 else if(!EnemyAgent.HasPath() || StateTimer <= 0)
                     SetState(RobeState.Idle, Random.Range(1f, 2f));
 
@@ -204,20 +252,21 @@ public class RobeOverride : MonoBehaviour
                 {
                     if(Utils.FindNavPosition(FocusedPlayer.transform.position + (transform.position - FocusedPlayer.transform.position).normalized * 3 + Random.insideUnitSphere * 0.5f, out Vector3 navPosition))
                         EnemyAgent.SetDestination(navPosition);
-                    else
-                        StateImpulse = true;
                 }
 
-                NormalRotationLogic();
+                LookAt(FocusedPlayer.transform.position);
 
+                float playerDistance = Vector3.Distance(transform.position, FocusedPlayer.transform.position);
                 if(CheckTouchLogic()) {}
                 else if(LastFocusedPlayerVisionTimer > 6f)
                 {
                     FocusedPlayer = null;
                     SetState(RobeState.Idle, Random.Range(0.25f, 0.5f));
                 }
-                else if(!EnemyAgent.HasPath() || StateTimer <= 0)
-                    SetState(RobeState.Idle, Random.Range(0.25f, 0.5f));
+                else if (playerDistance > 10f)
+                    SetState(RobeState.ChaseBegin, Random.Range(0.25f, 0.5f));
+                else if((playerDistance < 3.5f && playerDistance > 2.5f) || !EnemyAgent.HasPath() || StateTimer <= 0)
+                    SetState(RobeState.Idle, 0f);
 
                 break;
             }
@@ -225,15 +274,10 @@ public class RobeOverride : MonoBehaviour
             {
                 if(ConsumeStateImpulse())
                 {
+                    RobeAnim.sfxHandIdle.PlayLoop(true, 2f, 2f, 0.4f);
                     OverrideMovement(0.5f, 2, StateTimer);
                     EnemyAgent.ResetPath();
                     StateInternalTimer = 0;
-
-                    if(TargetValuable != null)
-                    {
-                        PhysGrabObjectImpactDetector impactDetector = (PhysGrabObjectImpactDetector)TargetValuable.Get<PhysGrabObject, ValuableObject>("physGrabObject").Get("impactDetector");
-                        impactDetector.onAllImpacts.AddListener(OnObjectBreak);
-                    }
                 }
 
                 if(TargetValuable != null)
@@ -241,11 +285,12 @@ public class RobeOverride : MonoBehaviour
                     LookAt(TargetValuable.transform.position);
                     Rigidbody targetValuableRigidbody = (Rigidbody)TargetValuable.Get("rb");
 
-                    // This might need to reduce if the mass of the object is low
-                    targetValuableRigidbody.AddForce(Vector3.up * 10, ForceMode.Force);
-
                     float distanceToValuable = Vector3.Distance(TargetValuable.transform.position, transform.position);
-                    if((distanceToValuable < 1.4f || distanceToValuable > 1.6f) && StateInternalTimer <= 0)
+
+                    if(distanceToValuable < 3.5f)
+                        targetValuableRigidbody.AddForce(new Vector3(0, Mathf.Min(targetValuableRigidbody.mass, 5), 0), ForceMode.Force);
+
+                    if((distanceToValuable < 1.8f || distanceToValuable > 2.6f) && StateInternalTimer <= 0)
                     {
                         StateInternalTimer = 0.1f;
                         Utils.FindNavPosition(TargetValuable.transform.position + (transform.position - TargetValuable.transform.position).normalized * 1.5f, out Vector3 navPosition, 0.5f);
@@ -254,21 +299,16 @@ public class RobeOverride : MonoBehaviour
                 }
 
                 if(ObjectBreakImpulse)
-                    SetState(RobeState.ChaseBegin, 1.5f);
-                else if((PhysGrabObject)FocusedPlayer.physGrabber.Get("grabbedPhysGrabObject") == null)
+                    SetState(RobeState.ChaseBegin, Random.Range(0.75f, 1.25f));
+                else if(!FocusedPlayer.physGrabber.grabbed)
                     SetState(RobeState.Idle, 1f);
                 if(StateTimer <= 0)
                     SetState(RobeState.Idle, 1f);
 
                 if(StateEndedImpulse)
                 {
+                    RobeAnim.sfxHandIdle.PlayLoop(false, 2f, 2f, 0.4f);
                     EndMovementOverride();
-
-                    if(TargetValuable != null)
-                    {
-                        PhysGrabObjectImpactDetector impactDetector = (PhysGrabObjectImpactDetector)TargetValuable.Get<PhysGrabObject, ValuableObject>("physGrabObject").Get("impactDetector");
-                        impactDetector.onAllImpacts.RemoveListener(OnObjectBreak);
-                    }
                 }
 
                 break;
@@ -285,7 +325,7 @@ public class RobeOverride : MonoBehaviour
                 LookAt(FocusedPlayer.transform.position);
                     
                 if(StateTimer <= 0)
-                    SetState(RobeState.Chase, Random.Range(6f, 10f));
+                    SetState(RobeState.Chase, Random.Range(10f, 14f));
 
                 if(StateEndedImpulse)
                     HurtCollider.enabled = true;
@@ -296,7 +336,7 @@ public class RobeOverride : MonoBehaviour
             {
                 if(ConsumeStateImpulse())
                 {
-                    RobeAnim.sfxTargetPlayerLoop.PlayLoop(true, 2f, 2f, 1f);
+                    RobeAnim.sfxTargetPlayerLoop.PlayLoop(true, 2f, 2f, 2f);
                     OverrideMovement(6, 10, StateTimer);
                     StateInternalTimer = 0;
                 }
@@ -310,25 +350,24 @@ public class RobeOverride : MonoBehaviour
                         EnemyAgent.SetDestination(navPosition);
                 }
 
-                if(LastFocusedPlayerVisionTimer > 6f)
+                float playerDistance = Vector3.Distance(transform.position, FocusedPlayer.transform.position);
+                bool playerCrawling = (bool)FocusedPlayer.Get("isCrawling");
+                if(LastFocusedPlayerVisionTimer > 8f)
                 { 
                     FocusedPlayer = null;
                     SetState(RobeState.GiveSpace, 2f);
                 }
-                else if(Vector3.Distance(transform.position, FocusedPlayer.transform.position) < 1f)
-                {
-                    if((bool)FocusedPlayer.Get("isCrawling"))
-                        SetState(RobeState.AttackUnder, 0.5f);
-                    else
-                        SetState(RobeState.Attack, 0.5f);
-                }
+                else if(playerDistance < 1f && !playerCrawling)
+                    SetState(RobeState.Attack, 0.5f);
+                else if(playerDistance < 2f && playerCrawling)
+                    SetState(RobeState.AttackUnder, 0.5f);
                 else if(StateTimer <= 0)
                     SetState(RobeState.GiveSpace, 2f);
-
+                    
                 if(StateEndedImpulse)
                 {
                     EndMovementOverride();
-                    RobeAnim.sfxTargetPlayerLoop.PlayLoop(false, 2f, 2f, 1f);
+                    RobeAnim.sfxTargetPlayerLoop.PlayLoop(false, 2f, 2f, 2f);
                 }
 
                 break;
@@ -338,9 +377,10 @@ public class RobeOverride : MonoBehaviour
                 if(ConsumeStateImpulse())
                 {
                     AttackAnimation();
-                    HurtCollider.playerDamage = 120;
+                    EnemyAgent.ResetPath();
                 }
 
+                HurtCollider.playerDamage = 120;
                 LookAt(FocusedPlayer.transform.position);
 
                 if(StateTimer <= 0)
@@ -350,16 +390,23 @@ public class RobeOverride : MonoBehaviour
             }
             case RobeState.AttackUnder:
             {
+                // Still broken, need to figure out what's wrong here
+
                 if(ConsumeStateImpulse())
                 {
+                    Animator.SetBool("LookingUnder", true);
                     AttackUnderAnimation();
-                    HurtCollider.playerDamage = 80;
+                    EnemyAgent.ResetPath();
                 }
 
+                HurtCollider.playerDamage = 80;
                 LookAt(FocusedPlayer.transform.position);
 
                 if(StateTimer <= 0)
                     SetState(RobeState.GiveSpace, 2f);
+
+                if(StateEndedImpulse)
+                    Animator.SetBool("LookingUnder", false);
 
                 break;
             }
@@ -367,6 +414,7 @@ public class RobeOverride : MonoBehaviour
             {
                 if(ConsumeStateImpulse())
                 {
+                    RobeAnim.sfxTargetPlayerLoop.PlayLoop(true, 2f, 2f, 2f);
                     if(Utils.FindNavPosition(EnemyAgent.transform.position + Random.onUnitSphere * 4, out Vector3 navPosition))
                         EnemyAgent.SetDestination(navPosition);
                     else
@@ -377,6 +425,9 @@ public class RobeOverride : MonoBehaviour
 
                 if(StateTimer <= 0)
                     SetState(RobeState.Idle, 2f);
+
+                if(StateEndedImpulse)
+                    RobeAnim.sfxTargetPlayerLoop.PlayLoop(false, 2f, 2f, 2f);
 
                 break;
             }
@@ -390,6 +441,48 @@ public class RobeOverride : MonoBehaviour
         ObjectBreakImpulse = false;
     }
 
+    public void ItemBreakTrackingLogic()
+    {
+        ItemBreakLogicTimer += Time.deltaTime;
+
+        if(ItemBreakLogicTimer < 1f)
+            return;
+
+        ItemBreakLogicTimer = 0;
+
+        for(int x = 0; x < TrackedValuables.Count; x++)
+            if(TrackedValuables[x] == null)
+                TrackedValuables.RemoveAt(x);
+
+        for(int x = 0; x < ValuableDirector.instance.valuableList.Count; x++)
+        {
+            ValuableObject valuable = ValuableDirector.instance.valuableList[x];
+
+            if(valuable == null)
+                continue;
+
+            float distance = Vector3.Distance(valuable.transform.position, transform.position);
+            int trackedIndex = TrackedValuables.IndexOf(valuable);
+            
+            if(distance > 4 && trackedIndex != -1)
+            {
+                TrackedValuables.RemoveAt(trackedIndex);
+                PhysGrabObjectImpactDetector impactDetector = (PhysGrabObjectImpactDetector)valuable
+                    .Get<PhysGrabObject, ValuableObject>("physGrabObject")
+                    .Get("impactDetector");
+                impactDetector.onAllBreaks.RemoveListener(OnObjectBreak);
+            }
+            else if(distance <= 4 && trackedIndex == -1)
+            {
+                TrackedValuables.Add(valuable);
+                PhysGrabObjectImpactDetector impactDetector = (PhysGrabObjectImpactDetector)valuable
+                    .Get<PhysGrabObject, ValuableObject>("physGrabObject")
+                    .Get("impactDetector");
+                impactDetector.onAllBreaks.AddListener(OnObjectBreak);
+            }
+        }
+    }
+
     public bool CheckTouchLogic()
     {
         if(!TouchedImpulse)
@@ -397,7 +490,7 @@ public class RobeOverride : MonoBehaviour
 
         FocusedPlayer = TouchedPlayer;
         LastFocusedPlayerVisionTimer = 0;
-        SetState(RobeState.ChaseBegin, 1f);
+        SetState(RobeState.ChaseBegin, Random.Range(0.75f, 1.25f));
         return true;
     }
 

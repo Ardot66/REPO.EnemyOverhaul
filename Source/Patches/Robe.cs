@@ -297,7 +297,7 @@ public class RobeOverride : MonoBehaviour
                 if(ConsumeStateImpulse())
                 {
                     RobeAnim.sfxTargetPlayerLoop.PlayLoop(true, 2f, 2f, 1f);
-                    OverrideMovement(4, 10, StateTimer);
+                    OverrideMovement(6, 10, StateTimer);
                     StateInternalTimer = 0;
                 }
 

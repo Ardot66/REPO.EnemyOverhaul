@@ -50,6 +50,9 @@ public static class PitsPatches
 
     public static void GenerateDonePostfix(LevelGenerator __instance)
     {
+        if(RunManager.instance.levelCurrent == RunManager.instance.levelArena)
+            return;
+
         List<HurtCollider> mapHurtColliders = Utils.GetHurtColliders(__instance.LevelParent.transform);
 
         for(int x = 0; x < mapHurtColliders.Count; x++)

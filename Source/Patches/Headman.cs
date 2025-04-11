@@ -129,17 +129,26 @@ public static class HeadmanPatches
 
         PhysGrabber playerGrabber = visionPlayer.physGrabber;
         Rigidbody grabbedObject = playerGrabber.Get<Rigidbody, PhysGrabber>("grabbedObject");
-        if(grabbedObject == null || grabbedObject.GetComponent<ValuableObject>() is not ValuableObject valuable)
+        if(grabbedObject == null || (float)___Enemy.Get("DisableChaseTimer") > 0f)
             return false;
-
-		if ((float)___Enemy.Get("DisableChaseTimer") > 0f)
-			return false;
 
         HeadmanState state = __instance.GetMetadata(State, HeadmanState.Roaming);
         float visionTimer = __instance.GetMetadata<float>(VisionTimerMeta);        
         float visionCheckTime = (float)vision.Get("VisionCheckTime");
 
-        visionTimer = Mathf.Min(visionTimer + visionCheckTime * (valuable.dollarValueCurrent / 1500) / Vector3.Distance(visionPlayer.playerTransform.position, __instance.transform.position), 1f);
+        float visionTimerMultiplier = 0f;
+        if(grabbedObject.GetComponent<ValuableObject>() is ValuableObject valuable)
+            visionTimerMultiplier = valuable.dollarValueCurrent / 1500;
+        else if(grabbedObject.GetComponent<ItemAttributes>() is ItemAttributes itemAttributes && (itemAttributes.item.itemType == SemiFunc.itemType.grenade || 
+                itemAttributes.item.itemType == SemiFunc.itemType.melee ||
+                itemAttributes.item.itemType == SemiFunc.itemType.gun ||
+                itemAttributes.item.itemType == SemiFunc.itemType.mine))
+        {
+            visionTimerMultiplier = 4;
+        }
+
+        visionTimer = Mathf.Min(visionTimer + visionCheckTime * visionTimerMultiplier / Vector3.Distance(visionPlayer.playerTransform.position, __instance.transform.position), 1f);
+
         __instance.SetMetadata(LastVisionTime, Time.time);
         __instance.SetMetadata(VisionTimerMeta, visionTimer);
 

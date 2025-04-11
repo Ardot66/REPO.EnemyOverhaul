@@ -42,6 +42,7 @@ public class RobeOverride : MonoBehaviour
 {
     public enum RobeState
     {
+        Invalid,
         Idle,
         Shifty,
         Roam,
@@ -55,6 +56,7 @@ public class RobeOverride : MonoBehaviour
     }
 
     public RobeState State = RobeState.Idle;
+    public RobeState FutureState = RobeState.Invalid;
     public float StateTimer = 0f;
     public float StateInternalTimer = 0f;
     public float LastFocusedPlayerVisionTimer = float.PositiveInfinity;
@@ -93,7 +95,7 @@ public class RobeOverride : MonoBehaviour
 
     public void SetState(RobeState state, float stateTimer)
     {
-        if (state == State || !SemiFunc.IsMasterClientOrSingleplayer())
+        if (state == State)
             return;
 
         StateImpulse = true;
@@ -106,11 +108,27 @@ public class RobeOverride : MonoBehaviour
             PhotonView.RPC("SetStateRPC", RpcTarget.Others, state, stateTimer);
     }
 
+    public void SyncFields()
+    {
+        if(!GameManager.Multiplayer())
+            return;
+
+        PhotonView.RPC("NetworkSetRPC", RpcTarget.Others, 
+            FocusedPlayer ? FocusedPlayer.photonView.ViewID : -1, 
+            TargetValuable ? TargetValuable.GetComponent<PhotonView>().ViewID : -1);
+    }
+
+    [PunRPC]
+    private void SyncFieldsRPC(int focusedPlayerID, int targetValuableID)
+    {
+        FocusedPlayer = focusedPlayerID == -1 ? null : PhotonView.Find(focusedPlayerID).GetComponent<PlayerAvatar>();
+        TargetValuable = targetValuableID == -1 ? null : PhotonView.Find(targetValuableID).GetComponent<ValuableObject>();
+    }
+
     [PunRPC]
     private void SetStateRPC(RobeState state, float stateTimer)
     {
-        StateImpulse = true;
-        State = state;
+        FutureState = state;
         StateTimer = stateTimer;
     }
 
@@ -127,6 +145,10 @@ public class RobeOverride : MonoBehaviour
         Rigidbody = (EnemyRigidbody)Enemy.Get("Rigidbody");
         EnemyAgent = (EnemyNavMeshAgent)Enemy.Get("NavMeshAgent");
         Vision = (EnemyVision)Enemy.Get("Vision");
+
+        if(!SemiFunc.IsMasterClientOrSingleplayer()) 
+            return;
+
         Vision.onVisionTriggered.AddListener(() => 
         {
             VisionImpulse = true;
@@ -153,25 +175,30 @@ public class RobeOverride : MonoBehaviour
         InterestTimer -= Time.deltaTime;
         LastFocusedPlayerVisionTimer += Time.deltaTime;
 
+        if(FutureState != RobeState.Invalid)
+            StateEndedImpulse = true;
 
-        if(VisionImpulse && !IgnoringPlayers && VisionTriggeredPlayers.Contains(FocusedPlayer) || TouchedImpulse && TouchedPlayer == FocusedPlayer)
+        if(SemiFunc.IsMasterClientOrSingleplayer())
         {
-            LastFocusedPlayerVisionTimer = 0;
-            InterestTimer = UnityEngine.Random.Range(30f, 140f);
+            if(VisionImpulse && !IgnoringPlayers && VisionTriggeredPlayers.Contains(FocusedPlayer) || TouchedImpulse && TouchedPlayer == FocusedPlayer)
+            {
+                LastFocusedPlayerVisionTimer = 0;
+                InterestTimer = UnityEngine.Random.Range(30f, 140f);
+            }
+
+            if(InterestTimer <= 0)
+            {
+                if(!IgnoringPlayers)
+                    InterestTimer = UnityEngine.Random.Range(20f, 40f);
+                else
+                    InterestTimer = float.PositiveInfinity;
+
+                IgnoringPlayers = !IgnoringPlayers;
+            }
+
+            ItemBreakTrackingLogic();
+            PlayerTrackingLogic();
         }
-
-        if(InterestTimer <= 0)
-        {
-            if(!IgnoringPlayers)
-                InterestTimer = UnityEngine.Random.Range(20f, 40f);
-            else
-                InterestTimer = float.PositiveInfinity;
-
-            IgnoringPlayers = !IgnoringPlayers;
-        }
-
-        ItemBreakTrackingLogic();
-        PlayerTrackingLogic();
 
         switch (State)
         {
@@ -183,7 +210,8 @@ public class RobeOverride : MonoBehaviour
                 if(FocusedPlayer != null)
                     LookAt(FocusedPlayer.transform.position);
 
-                if(PlayerAggroLogic()) {}
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(PlayerAggroLogic()) {}
                 else if(StateTimer <= 0)
                 {
                     if(FocusedPlayer != null)
@@ -191,7 +219,10 @@ public class RobeOverride : MonoBehaviour
                         float playerDistance = Vector3.Distance(transform.position, FocusedPlayer.transform.position);
     
                         if (FocusedPlayer.physGrabber.grabbed && FocusedPlayer.physGrabber.Get("grabbedPhysGrabObject") is PhysGrabObject playerGrabbedObject && (TargetValuable = playerGrabbedObject.GetComponent<ValuableObject>()) != null)
+                        {
                             SetState(RobeState.HelpPlayer, 30f);
+                            SyncFields();
+                        }
                         else if(playerDistance > 3.5f || playerDistance < 2.5f)
                             SetState(RobeState.FollowPlayer, UnityEngine.Random.Range(10f, 12f));
                         else
@@ -217,7 +248,8 @@ public class RobeOverride : MonoBehaviour
 
                 LookAt(FocusedPlayer.transform.position);
 
-                if(PlayerAggroLogic()) {}
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(PlayerAggroLogic()) {}
                 else if(StateTimer <= 0)
                     SetState(RobeState.Idle, 1f);
                     
@@ -236,12 +268,14 @@ public class RobeOverride : MonoBehaviour
 
                 NormalRotationLogic();
 
-                if(PlayerAggroLogic()) {}
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(PlayerAggroLogic()) {}
                 else if(VisionImpulse && !IgnoringPlayers)
                 {
                     LastFocusedPlayerVisionTimer = 0f;
                     FocusedPlayer = VisionTriggeredPlayers[UnityEngine.Random.Range(0, VisionTriggeredPlayers.Count)];
                     SetState(RobeState.FollowPlayer, 12f);
+                    SyncFields();
                 }
                 else if(!EnemyAgent.HasPath() || StateTimer <= 0)
                     SetState(RobeState.Idle, UnityEngine.Random.Range(1f, 2f));
@@ -259,11 +293,14 @@ public class RobeOverride : MonoBehaviour
                 LookAt(FocusedPlayer.transform.position);
 
                 float playerDistance = Vector3.Distance(transform.position, FocusedPlayer.transform.position);
-                if(PlayerAggroLogic()) {}
+                
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(PlayerAggroLogic()) {}
                 else if(LastFocusedPlayerVisionTimer > 6f)
                 {
                     FocusedPlayer = null;
                     SetState(RobeState.Idle, UnityEngine.Random.Range(0.25f, 0.5f));
+                    SyncFields();
                 }
                 else if (playerDistance > 10f)
                     SetState(RobeState.ChaseBegin, UnityEngine.Random.Range(0.25f, 0.5f));
@@ -300,10 +337,9 @@ public class RobeOverride : MonoBehaviour
                     }
                 }
 
-                if(PlayerAggroLogic()) {}
-                else if(!FocusedPlayer.physGrabber.grabbed)
-                    SetState(RobeState.Idle, 1f);
-                if(StateTimer <= 0)
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(PlayerAggroLogic()) {}
+                else if(StateTimer <= 0 || !FocusedPlayer.physGrabber.grabbed)
                     SetState(RobeState.Idle, 1f);
 
                 if(StateEndedImpulse)
@@ -325,7 +361,8 @@ public class RobeOverride : MonoBehaviour
                 
                 LookAt(FocusedPlayer.transform.position);
                     
-                if(StateTimer <= 0)
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}    
+                else if(StateTimer <= 0)
                     SetState(RobeState.Chase, UnityEngine.Random.Range(10f, 14f));
 
                 if(StateEndedImpulse)
@@ -353,7 +390,9 @@ public class RobeOverride : MonoBehaviour
 
                 float playerDistance = Vector3.Distance(transform.position, FocusedPlayer.transform.position);
                 bool playerCrawling = (bool)FocusedPlayer.Get("isCrawling");
-                if(LastFocusedPlayerVisionTimer > 8f)
+
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(LastFocusedPlayerVisionTimer > 8f)
                 { 
                     FocusedPlayer = null;
                     SetState(RobeState.GiveSpace, 2f);
@@ -384,7 +423,8 @@ public class RobeOverride : MonoBehaviour
                 HurtCollider.playerDamage = 120;
                 LookAt(FocusedPlayer.transform.position);
 
-                if(StateTimer <= 0)
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(StateTimer <= 0)
                     SetState(RobeState.GiveSpace, 2f);
 
                 break;
@@ -403,7 +443,8 @@ public class RobeOverride : MonoBehaviour
                 HurtCollider.playerDamage = 80;
                 LookAt(FocusedPlayer.transform.position);
 
-                if(StateTimer <= 0)
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(StateTimer <= 0)
                     SetState(RobeState.GiveSpace, 2f);
 
                 if(StateEndedImpulse)
@@ -424,7 +465,8 @@ public class RobeOverride : MonoBehaviour
 
                 NormalRotationLogic();
 
-                if(PlayerAggroLogic(aggroTouch: false)) {}
+                if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
+                else if(PlayerAggroLogic(aggroTouch: false)) {}
                 else if(StateTimer <= 0)
                     SetState(RobeState.Idle, 2f);
 
@@ -443,6 +485,13 @@ public class RobeOverride : MonoBehaviour
         StateEndedImpulse = false;
         ObjectBreakImpulse = false;
         PlayerAggressiveImpulse = false;
+
+        if(FutureState != RobeState.Invalid)
+        {
+            State = FutureState;
+            FutureState = RobeState.Invalid;
+            StateImpulse = true;
+        }
     }
 
     public void ItemBreakTrackingLogic()
@@ -535,6 +584,7 @@ public class RobeOverride : MonoBehaviour
         if(aggro)
         {
             SetState(RobeState.ChaseBegin, UnityEngine.Random.Range(0.75f, 1.25f));
+            SyncFields();
             LastFocusedPlayerVisionTimer = 0;
             return true;
         }

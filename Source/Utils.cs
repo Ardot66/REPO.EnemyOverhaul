@@ -168,4 +168,10 @@ public static class Utils
         value.valueMax = max;
         return value;
     }
+
+    public static float WeightedDistance(Vector3 vectorA, Vector3 vectorB, float x = 1, float y = 1, float z = 1)
+    {
+        Vector3 difference = Vector3.Scale(vectorA - vectorB, new Vector3(x, y, z));
+        return Vector3.Magnitude(difference);
+    }
 }

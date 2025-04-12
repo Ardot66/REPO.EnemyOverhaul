@@ -215,8 +215,7 @@ public class RobeOverride : MonoBehaviour
                 array[i].Play();
             }
 
-            if (SemiFunc.IsMasterClientOrSingleplayer())
-                EnemyParent.SpawnedTimerSet(0f);
+            EnemyParent.Despawn();
         });
         stateSpawn.OnSpawn.AddListener(() =>
         {
@@ -310,7 +309,7 @@ public class RobeOverride : MonoBehaviour
                 {
                     if(FocusedPlayer != null)
                     {
-                        float playerDistance = Vector3.Distance(transform.position, FocusedPlayer.transform.position);
+                        float playerDistance = Utils.WeightedDistance(transform.position, FocusedPlayer.transform.position, y: 0.2f);
     
                         if (FocusedPlayer.physGrabber.grabbed && FocusedPlayer.physGrabber.Get("grabbedPhysGrabObject") is PhysGrabObject playerGrabbedObject && (TargetValuable = playerGrabbedObject.GetComponent<ValuableObject>()) != null)
                         {
@@ -342,7 +341,7 @@ public class RobeOverride : MonoBehaviour
 
                 NormalRotationLogic();
 
-                float playerDistance = FocusedPlayer ? Vector3.Distance(transform.position, FocusedPlayer.transform.position) : 3f;
+                float playerDistance = FocusedPlayer ? Utils.WeightedDistance(transform.position, FocusedPlayer.transform.position, y: 0.2f) : 3f;
                 if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
                 else if(LosePlayerLogic())
                     SetState(RobeState.Idle, UnityEngine.Random.Range(0.25f, 0.5f));
@@ -371,7 +370,7 @@ public class RobeOverride : MonoBehaviour
                 {
                     LastFocusedPlayerVisionTimer = 0f;
                     FocusedPlayer = VisionTriggeredPlayers[UnityEngine.Random.Range(0, VisionTriggeredPlayers.Count)];
-                    SetState(RobeState.FollowPlayer, 12f);
+                    SetState(RobeState.FollowPlayer, 3f);
                     SyncFields();
                 }
                 else if(!EnemyAgent.HasPath() || StateTimer <= 0)
@@ -392,7 +391,7 @@ public class RobeOverride : MonoBehaviour
                 if(FocusedPlayer != null)
                     LookAt(FocusedPlayer.transform.position);
 
-                float playerDistance = FocusedPlayer ? Vector3.Distance(transform.position, FocusedPlayer.transform.position) : 3f;
+                float playerDistance = FocusedPlayer ? Utils.WeightedDistance(transform.position, FocusedPlayer.transform.position, y: 0.2f) : 3f;
                 
                 if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
                 else if(PlayerAggroLogic()) {}
@@ -420,7 +419,7 @@ public class RobeOverride : MonoBehaviour
                     LookAt(TargetValuable.transform.position);
                     Rigidbody targetValuableRigidbody = (Rigidbody)TargetValuable.Get("rb");
 
-                    float distanceToValuable = Vector3.Distance(TargetValuable.transform.position, transform.position);
+                    float distanceToValuable = Utils.WeightedDistance(transform.position, FocusedPlayer.transform.position, y: 0.2f);;
 
                     if(distanceToValuable < 3.5f)
                         targetValuableRigidbody.AddForce(new Vector3(0, Mathf.Min(targetValuableRigidbody.mass, 5), 0), ForceMode.Force);
@@ -485,7 +484,7 @@ public class RobeOverride : MonoBehaviour
                         EnemyAgent.SetDestination(navPosition);
                 }
 
-                float playerDistance = FocusedPlayer ? Vector3.Distance(transform.position, FocusedPlayer.transform.position) : 10f;
+                float playerDistance = FocusedPlayer ? Utils.WeightedDistance(transform.position, FocusedPlayer.transform.position, y: 0.2f) : 10f;
                 bool playerCrawling = FocusedPlayer ? (bool)FocusedPlayer.Get("isCrawling") : false;
 
                 if(!SemiFunc.IsMasterClientOrSingleplayer()) {}

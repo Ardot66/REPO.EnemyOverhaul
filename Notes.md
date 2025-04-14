@@ -1,5 +1,9 @@
 # Notes
 
+## Playtesting Notes
+
+- Huntsman really needs that huh phase, I got fucked with no counterplay
+
 ## Misc Changes
 
 - Make pits fall into adjacent rooms from the ceiling, dealing non-lethal fall damage.
@@ -10,6 +14,15 @@
 - Make melee weapons have no charge, more skill based somehow?
   - Maybe a durability system where new weapons have to be purchased after old ones break?
 - Make the minimap an upgrade, potentially remove entirely.
+
+## Upgrades
+
+- Speed & Stam
+  - Reduce stamina use increase from speed upgrades.
+
+### General
+
+- Make upgrades have diminishing effects
 
 ## Enemies
 
@@ -110,6 +123,201 @@
 - Valuable Tracker (Item Valuable Tracker): Value 3500 - 4500 Max 1 - 1
 
 ## Enemy Structures
+
+### Trudge
+
+- Enemy - Slow Walker(Clone) - UnityEngine.Transform, EnemyChecklist, Photon.Pun.PhotonView, EnemyParent
+   |- Particles - UnityEngine.Transform
+   |   |- Death Particles - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint
+   |   |   |- Death Impact - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Bits Far - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Bits Short - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Death Smoke - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |- Enable - UnityEngine.Transform
+   |   |- Controller - UnityEngine.Transform, Photon.Pun.PhotonView, EnemySlowWalker, Enemy, EnemyHealth, EnemyStateSpawn, EnemyStateDespawn, EnemyStateStunned, EnemyVision, EnemyStateInvestigate, UnityEngine.AI.NavMeshAgent, EnemyNavMeshAgent, EnemyOnScreen, EnemyPlayerDistance, EnemyPlayerRoom, Ardot.REPO.REPOverhaul.TrudgeOverride
+   |   |   |- Attack Offset - UnityEngine.Transform
+   |   |   |   |- Follow - UnityEngine.Transform
+   |   |- [VISUALS] - UnityEngine.Transform, EnemySlowWalkerAnim, UnityEngine.Animations.ParentConstraint, UnityEngine.Animator
+   |   |   |- [ANIM S&S BOT] - UnityEngine.Transform
+   |   |   |   |- [ANIM S&S MID] - UnityEngine.Transform
+   |   |   |   |   |- [ANIM BODY PIVOT BOT] - UnityEngine.Transform
+   |   |   |   |   |   |- [BODY BOT] - UnityEngine.Transform
+   |   |   |   |   |   |   |- ANIM body_bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- ANIM body_bot FREE - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- mesh body_bot - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- [FLESH BACK] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- ANIM flesh_back - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh flesh_back - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- [EYE] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- ANIM eye - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- ANIM eye_wiggle - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- mesh eye - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |- [BODY TOP] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- ANIM body_top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- ANIM body_top FREE - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh body_top - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |- [NECK] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- [NECK BASE] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM neck_base - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh neck_base - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |- LOOK AT - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_LookAt - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- Hurt Collider - LookUnderAttack - UnityEngine.Transform, UnityEngine.BoxCollider, HurtCollider
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [NECK 01] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM neck_01 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_neck_01_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_neck_01_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh neck_01 - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.BoxCollider
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [NECK 02] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM neck_02 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_neck_02_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_neck_02_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh neck_02 - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.BoxCollider
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [NECK 03] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM neck_03 - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_neck_03_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_neck_03_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh neck_03 - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.BoxCollider
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [HEAD] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM head - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [HEAD TOP] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM head_top - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh head_top - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.BoxCollider
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [HEAD EYE FLESH] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM head_eye_flesh - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_head_eye_flesh_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_head_eye_flesh_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh head_eye_flesh - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [HEAD EYE] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM head_eye - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_head_eye_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- code_head_eye_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh head_eye - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [HEAD BOT] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM head_bot - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh head_bot - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.BoxCollider
+   |   |   |   |   |   |   |   |   |   |- [ARM L] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- ANIM arm_L - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- mesh arm_L - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.BoxCollider
+   |   |   |   |   |   |   |   |   |   |   |   |- [SHOULDER L] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM shoulder_L - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh shoulder_L - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |- [FLESH SHOULDER L] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM flesh_shoulder_L - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh flesh_shoulder_L - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |- [ARM R] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- ANIM arm_R - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- mesh arm_R - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.BoxCollider
+   |   |   |   |   |   |   |   |   |   |- [SHOULDER R] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- ANIM shoulder_R - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |- mesh shoulder_R - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- [FLESH SHOULDER R] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |- ANIM flesh_shoulder_R - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |   |   |   |- mesh flesh_shoulder_R - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |   |- Audio Source - Mace Trailing - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- Slow Walker Effect Sparks - UnityEngine.Transform, SlowWalkerSparkEffect
+   |   |   |   |   |   |   |   |   |   |   |   |- Particle Ding Light - UnityEngine.Transform, UnityEngine.Light
+   |   |   |   |   |   |   |   |   |   |   |   |- Particles Sparks - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Smoke - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |   |   |   |   |   |   |   |   |   |- Particle Ding Red - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |   |   |   |   |   |- [FLAP FRONT] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- ANIM flap_front - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_front_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_front_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh flap_front - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |- [FLAP L] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- ANIM flap_L - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_L_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_L_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh flap_L - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |- [FLAP R] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- ANIM flap_R - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_R_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_R_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh flap_R - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |- [FLAP BACK] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- ANIM flap_back - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_back_target - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- code_flap_back_source - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh flap_back - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Slow Walker - Leg L - UnityEngine.Transform
+   |   |   |   |   |   |- ANIM foot_bot_L - UnityEngine.Transform
+   |   |   |   |   |   |   |- [FOOT TOP_L] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- ANIM foot_top_L - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- mesh foot_top_L - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- [LEG 01_L] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- ANIM leg_01_L - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- mesh leg_01_L - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- [LEG 02_L] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- ANIM leg_02_L - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh leg_02_L - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |- Slow Walker - Leg R - UnityEngine.Transform
+   |   |   |   |   |   |- ANIM foot_bot_R - UnityEngine.Transform
+   |   |   |   |   |   |   |- [FOOT TOP_R] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- ANIM foot_top_R - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- mesh foot_top_R - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |- [LEG 01_R] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |- ANIM leg_01_R - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |- mesh leg_01_R - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |   |   |   |   |   |   |- [LEG 02_R] - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |- ANIM leg_02_R - UnityEngine.Transform
+   |   |   |   |   |   |   |   |   |   |   |- mesh leg_02_R - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer
+   |   |   |- Club Hit Point - UnityEngine.Transform
+   |   |   |- Vision Transform - UnityEngine.Transform
+   |   |   |- Particle Constraint - UnityEngine.Transform
+   |   |   |- On Screen Point Top - UnityEngine.Transform
+   |   |   |- On Screen Point Mid - UnityEngine.Transform
+   |   |   |- On Screen Point Bot - UnityEngine.Transform
+   |   |   |- Feet Transform - UnityEngine.Transform
+   |   |   |- Kill Look At Transform - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint
+   |   |   |- Hurt Collider - StuckAttack - UnityEngine.Transform, UnityEngine.BoxCollider, HurtCollider
+   |   |- [AUDIO] - UnityEngine.Transform, UnityEngine.Animations.ParentConstraint
+   |   |   |- Audio Source - Stunned - Loop - UnityEngine.Transform, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic
+   |   |- Rigidbody - UnityEngine.Transform, Photon.Pun.PhotonView, Photon.Pun.PhotonTransformView, EnemyRigidbody, PhysGrabObject, NotValuableObject, RoomVolumeCheck, PhysGrabObjectImpactDetector, UnityEngine.Rigidbody, EnemyGrounded, EnemyJump
+   |   |   |- Collider - UnityEngine.Transform, UnityEngine.CapsuleCollider, PhysGrabObjectCapsuleCollider, PhysGrabObjectCollider
+   |   |   |- Player Collision - UnityEngine.Transform, UnityEngine.CapsuleCollider, PhysGrabObjectCollider
+   |   |   |- Center - UnityEngine.Transform
+   |   |   |- Grounded - UnityEngine.Transform, UnityEngine.BoxCollider
+   |   |- Audio Stun - UnityEngine.Transform, UnityEngine.AudioSource, UnityEngine.AudioLowPassFilter, AudioLowPassLogic, UnityEngine.Animations.ParentConstraint
+   |- Slow Walker Attack - UnityEngine.Transform, Photon.Pun.PhotonView, SlowWalkerAttack
+   |   |- Particle Ding Light - UnityEngine.Transform, UnityEngine.Light
+   |   |- Buildup - UnityEngine.Transform
+   |   |   |- Hurt Collider - Attack - UnityEngine.Transform, UnityEngine.BoxCollider, HurtCollider
+   |   |   |- VacuumSphere - UnityEngine.Transform, UnityEngine.MeshFilter, UnityEngine.MeshRenderer, UnityEngine.SphereCollider
+   |   |   |- Hurt Collider - UnityEngine.Transform, HurtCollider, UnityEngine.SphereCollider
+   |   |   |- Particle Ding - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Ding Red - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Cracks Buildup - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Cracks Suck In - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Shockwave - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Suck Particles - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Metal Bits - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Suck Particles Buildup - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |- Impact - UnityEngine.Transform
+   |   |   |- Hurt Colliders - UnityEngine.Transform
+   |   |   |   |- Hurt Collider - UnityEngine.Transform, HurtCollider, UnityEngine.SphereCollider
+   |   |   |- Particle Shockwave 2 - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Smoke - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Smoke (1) - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particles Poof Up - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Cracks - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particles Poof - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Ding Red - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Ding White - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Metal Bits Up - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Metal Bits - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |- Slow Walker Jump - UnityEngine.Transform, SlowWalkerJumpEffect, UnityEngine.Animations.ParentConstraint
+   |   |- Particle Ding Light - UnityEngine.Transform, UnityEngine.Light
+   |   |- Rotation - UnityEngine.Transform
+   |   |   |- Particle Shockwave 2 - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particles Poof (1) - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Ding Red - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particles Poof - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Cracks Buildup - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Particle Cracks Buildup (1) - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Smoke - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Smoke (2) - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
+   |   |   |- Smoke (1) - UnityEngine.Transform, UnityEngine.ParticleSystem, UnityEngine.ParticleSystemRenderer
 
 ### Gnome
 

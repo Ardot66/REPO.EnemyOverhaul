@@ -174,4 +174,9 @@ public static class Utils
         Vector3 difference = Vector3.Scale(vectorA - vectorB, new Vector3(x, y, z));
         return Vector3.Magnitude(difference);
     }
+
+    public static bool IsHost()
+    {
+        return SemiFunc.IsMasterClientOrSingleplayer();
+    }
 }

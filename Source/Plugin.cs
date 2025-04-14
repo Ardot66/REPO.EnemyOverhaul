@@ -27,5 +27,7 @@ public class Plugin : BaseUnityPlugin
         HeadmanPatches.Patch();
         PitsPatches.Patch();
         RobePatches.Patch();
+        //DirectorPatches.Patch();
+        //TrudgePatches.Patch();
     }
 }

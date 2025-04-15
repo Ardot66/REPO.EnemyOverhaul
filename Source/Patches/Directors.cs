@@ -1,6 +1,7 @@
 using HarmonyLib;
 using UnityEngine.Events;
 using UnityEngine;
+using System.Collections;
 
 namespace Ardot.REPO.REPOverhaul;
 
@@ -42,8 +43,12 @@ public class OverhaulDirector : MonoBehaviour
         ExtractionCompletedImpulse = false;
 
         ExtractionPoint currentExtraction = (ExtractionPoint)RoundDirector.instance.Get("extractionPointCurrent");
+
         if(currentExtraction != CurrentExtraction)
         {
+            if(currentExtraction != null && ((ExtractionPoint.State)currentExtraction.Get("currentState") != ExtractionPoint.State.Active || (bool)currentExtraction.Get("stateStart")))
+                goto Break;
+
             if(CurrentExtraction == null)
                 ExtractionUnlockedImpulse = true;
             else
@@ -52,9 +57,11 @@ public class OverhaulDirector : MonoBehaviour
             CurrentExtraction = currentExtraction;
         }
 
+        Break:
+
         if(ExtractionUnlockedImpulse)
         {
-            AccessTools.Method(typeof(ExtractionPoint), "HaulGoalSet").Invoke(CurrentExtraction, [CurrentExtraction.haulGoal + ExtractionOverflow * 1.2f]);
+            AccessTools.Method(typeof(ExtractionPoint), "HaulGoalSet").Invoke(CurrentExtraction, [(int)RoundDirector.instance.Get("haulGoal") / (int)RoundDirector.instance.Get("extractionPoints") + ExtractionOverflow * 12 / 10]);
             AccessTools.Method(typeof(ExtractionPoint), "SetHaulText").Invoke(CurrentExtraction, null);
             ExtractionOverflow = 0;
         }
@@ -64,14 +71,43 @@ public class OverhaulDirector : MonoBehaviour
     {
         extraction.enabled = false;
         ExtractionOverflow += extraction.haulGoal;
+        RoundDirector.instance.Set("extractionPointActive", false);
+        RoundDirector.instance.ExtractionPointsUnlock();
         RoundDirector.instance.ExtractionCompleted();
+
+        const int DestructionFee = 5;
+
+		SemiFunc.StatSetRunCurrency(SemiFunc.StatGetRunCurrency() - DestructionFee);
+        CurrencyUI.instance.Show();
+        CurrencyUI.instance.Set("showTimer", 2f);
 
         int extractionPoints = (int)RoundDirector.instance.Get("extractionPoints");
         int extractionPointsCompleted = (int)RoundDirector.instance.Get("extractionPointsCompleted");
 
         if(extractionPoints - extractionPointsCompleted <= 0)
+            GameOver();
+        else
         {
-            // Game over logic
+            SemiFunc.UIBigMessage($"EXTRACTION DESTROYED\n${DestructionFee * 1000} FINED", "{!}", 25f, Color.red, Color.red);
+            BigMessageUI.instance.Set("bigMessageTimer", 3f);
         }
+    }
+
+    public void GameOver()
+    {
+        StartCoroutine(GameOverCoroutine());
+    }
+
+    public IEnumerator GameOverCoroutine()
+    {
+        SemiFunc.UIBigMessage($"ESSENTIAL ASSETS DAMAGED", "{!}", 30f, Color.red, Color.red);
+        BigMessageUI.instance.Set("bigMessageTimer", 3f);
+
+        yield return new WaitForSeconds(6f);
+
+        for(int x = 0; x < GameDirector.instance.PlayerList.Count; x++)
+            GameDirector.instance.PlayerList[x].PlayerDeath(-1);
+
+        yield break;
     }
 }

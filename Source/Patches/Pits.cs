@@ -75,7 +75,7 @@ public static class PitsPatches
         __instance.onImpactAny.Invoke();
 		__instance.onImpactPlayer.Invoke();
 
-        LevelPoint destination = ChooseLevelPoint(_player.transform.position, 40, 0.05f);
+        LevelPoint destination = Utils.ChooseLevelPoint(_player.transform.position, 40, 1f);
 
         Vector3 finalPosition = destination.transform.position + new Vector3(0, 1, 0);
         _player.Spawn(finalPosition, _player.transform.rotation);
@@ -99,7 +99,7 @@ public static class PitsPatches
         __instance.onImpactAny.Invoke();
         __instance.onImpactEnemy.Invoke();
 
-        LevelPoint destination = ChooseLevelPoint(_enemy.transform.position, 40, 0.05f);
+        LevelPoint destination = Utils.ChooseLevelPoint(_enemy.transform.position, 40, 1f);
         Vector3 finalPosition = destination.transform.position + new Vector3(0, 1, 0);
 
         _enemy.EnemyTeleported(finalPosition);
@@ -124,44 +124,12 @@ public static class PitsPatches
         if(!__instance.GetMetadata(MapHurtCollider, false))
             return true;
 
-        LevelPoint destination = ChooseLevelPoint(physGrabObject.transform.position, 40, 0.05f);
+        LevelPoint destination = Utils.ChooseLevelPoint(physGrabObject.transform.position, 40, 1f);
         Vector3 finalPosition = destination.transform.position + new Vector3(0, 1, 0);
 
         physGrabObject.Teleport(finalPosition, physGrabObject.transform.rotation);
 
         __result = true;
         return false;
-    }
-
-    public static LevelPoint ChooseLevelPoint(Vector3 position, float idealRadius, float truckDistanceMultiplier)
-    {
-        List<LevelPoint> levelPoints = LevelGenerator.Instance.LevelPathPoints;
-        float[] levelPointScores = new float [levelPoints.Count];
-        float totalScore = 0;
-
-        for(int x = 0; x < levelPoints.Count; x++)
-        {
-            LevelPoint levelPoint = levelPoints[x];
-            float distance = Mathf.Abs(idealRadius - Vector2.Distance(new Vector2(levelPoint.transform.position.x, levelPoint.transform.position.z), new Vector2(position.x, position.z)));
-            
-            float score = Mathf.Min(distance < 5 ? 1 : 1 / (distance * distance), 1);
-            score *= Vector3.Distance(LevelGenerator.Instance.LevelParent.transform.position, levelPoint.transform.position) * truckDistanceMultiplier;
-            levelPointScores[x] = score;
-            totalScore += score;
-        }
-
-        float chosen = Random.Range(0, totalScore);
-        LevelPoint destination = levelPoints[levelPoints.Count - 1];
-        for(int x = 0; x < levelPoints.Count; x++)
-        {
-            chosen -= levelPointScores[x];
-            if(chosen <= 0)
-            {
-                destination = levelPoints[x];
-                break;
-            }
-        }
-
-        return destination;
     }
 }

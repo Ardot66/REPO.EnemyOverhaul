@@ -213,7 +213,8 @@ public class RobeOverride : MonoBehaviour
                 array[i].Play();
             }
 
-            EnemyParent.Despawn();
+            if(Utils.IsHost())
+                EnemyParent.Despawn();
         });
         stateSpawn.OnSpawn.AddListener(() =>
         {

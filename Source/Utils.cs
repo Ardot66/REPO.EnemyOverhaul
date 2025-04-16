@@ -5,7 +5,7 @@ using UnityEngine;
 using System.Reflection;
 using UnityEngine.AI;
 
-namespace Ardot.REPO.REPOverhaul;
+namespace Ardot.REPO.EnemyOverhaul;
 
 public static class Utils
 {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Ardot.REPO.REPOverhaul;
+namespace Ardot.REPO.EnemyOverhaul;
 
 public static class GnomePatches
 {

@@ -1,7 +1,7 @@
 using UnityEngine;
 using HarmonyLib;
 
-namespace Ardot.REPO.REPOverhaul;
+namespace Ardot.REPO.EnemyOverhaul;
 
 public static class HuntsmanPatches
 {

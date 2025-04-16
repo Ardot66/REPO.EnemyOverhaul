@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Photon.Pun;
 
-namespace Ardot.REPO.REPOverhaul;
+namespace Ardot.REPO.EnemyOverhaul;
 
 public static class RobePatches
 {

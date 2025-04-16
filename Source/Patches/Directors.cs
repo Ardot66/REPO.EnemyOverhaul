@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine;
 using System.Collections;
 
-namespace Ardot.REPO.REPOverhaul;
+namespace Ardot.REPO.EnemyOverhaul;
 
 public static class DirectorPatches
 {

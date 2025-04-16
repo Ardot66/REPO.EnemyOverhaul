@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using HarmonyLib;
 
-namespace Ardot.REPO.REPOverhaul;
+namespace Ardot.REPO.EnemyOverhaul;
 
 public static class TrudgePatches
 {

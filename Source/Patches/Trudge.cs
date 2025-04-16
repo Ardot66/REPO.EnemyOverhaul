@@ -470,6 +470,7 @@ public class TrudgeOverride : MonoBehaviour
             PhotonView.RPC("SetStateRPC", RpcTarget.Others, state, time);
     }
 
+    [PunRPC]
     private void SetStateRPC(TrudgeState state, float time)
     {
         FutureState = state;

@@ -2,7 +2,7 @@ SHELL = cmd
 
 LOCAL_INFO = LocalInfo.txt
 REPO_PATH := $(strip $(file < $(LOCAL_INFO)))
-NAME = REPOverhaul
+NAME = EnemyOverhaul
 DLL = bin\Debug\netstandard2.1\$(NAME).dll
 
 All: Compile Push Debug

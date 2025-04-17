@@ -2,4 +2,6 @@ bin/*
 Libraries/*
 obj/*
 *.sln
-LocalInfo.txt
+Local/*
+Build/*
+.vscode/*

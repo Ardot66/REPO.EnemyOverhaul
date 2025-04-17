@@ -1,9 +1,0 @@
-{
-    "name": "Enemy_Overhaul",
-    "version_number": "1.0.3",
-    "website_url": "https://github.com/Ardot66/REPO.EnemyOverhaul",
-    "description": "Overhauls the AI and behaviours of several enemies. Good luck!",
-    "dependencies": [
-        "BepInEx-BepInExPack-5.4.2100"
-    ]
-}

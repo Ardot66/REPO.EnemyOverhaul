@@ -1,7 +1,8 @@
 SHELL = cmd
 
-LOCAL_INFO = LocalInfo.txt
-REPO_PATH := $(strip $(file < $(LOCAL_INFO)))
+LOCAL = Local
+REPO_PATH := $(file < $(LOCAL)/REPOPath.txt)
+PUBLISH_TOKEN := $(file < $(LOCAL)/PublishToken.txt)
 NAME = EnemyOverhaul
 DLL = bin\Debug\netstandard2.1\$(NAME).dll
 
@@ -22,6 +23,10 @@ Push:
 		git add . && \
 		git commit -m "Recompiled plugins" &&\
 		git push origin main
+
+Publish:
+	tcli build
+	tcli publish --token $(PUBLISH_TOKEN)
 
 Clean:
 	del $(DLL)

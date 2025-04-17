@@ -27,6 +27,7 @@ public class OverhaulDirector : MonoBehaviour
 
     public bool ExtractionCompletedImpulse = new ();
     public bool ExtractionUnlockedImpulse = new ();
+    public bool AllExtractionPointsCompleted = false;
 
     public int ExtractionOverflow = 0;
 
@@ -55,6 +56,7 @@ public class OverhaulDirector : MonoBehaviour
                 ExtractionCompletedImpulse = true;
 
             CurrentExtraction = currentExtraction;
+            AllExtractionPointsCompleted = (bool)RoundDirector.instance.Get("allExtractionPointsCompleted");
         }
 
         Break:

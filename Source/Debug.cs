@@ -28,24 +28,4 @@ public static class Debug
 
         Plugin.Logger.LogInfo(new string([.. message]));
     }
-
-    public static void PrintItems()
-    {
-        Plugin.Logger.LogInfo("Items           ---");
-
-        Dictionary<string, Item> itemDictionary = StatsManager.instance.itemDictionary;
-        foreach(string itemName in itemDictionary.Keys)
-        {
-            Item item = itemDictionary[itemName];
-            Plugin.Logger.LogInfo($"{item.itemName} ({itemName}): Value {item.value.valueMin} - {item.value.valueMax} Max {item.maxAmount} - {item.maxAmountInShop}");    
-        }
-    }
-
-    public static void PrintEnemies()
-    {       
-        Plugin.Logger.LogInfo("Enemies          ---");
-
-        foreach(string enemyName in Plugin.Enemies.Keys)
-            Plugin.Logger.LogInfo(enemyName);
-    }
 }

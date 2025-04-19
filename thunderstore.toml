@@ -4,8 +4,8 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "Ardot66"
 name = "Enemy_Overhaul"
-versionNumber = "1.0.7"
-description = "Overhauls or improves the AI of the Trudge, Robe, Headman, Huntsman, Gnome... and even pits? See description for more information!"
+versionNumber = "1.0.9"
+description = "(Now Configurable!) Overhauls or improves the AI of the Trudge, Robe, Headman, Huntsman, Gnome... and even pits? See description for more information!"
 websiteUrl = "https://github.com/Ardot66/REPO.EnemyOverhaul"
 containsNsfwContent = false
 [package.dependencies]
@@ -20,13 +20,17 @@ outdir = "./Build"
 source = "./bin/Debug/netstandard2.1/EnemyOverhaul.dll"
 target = "./"
 
+[[build.copy]]
+source = "./CHANGELOG.md"
+target = "./"
+
 [general]
 repository = "https://thunderstore.io"
 
 [publish]
-communities = ["R.E.P.O."]
+communities = ["repo"]
 
 [publish.categories]
-"R.E.P.O." = [ "mods", "monsters", "server-side"]
+"repo" = [ "mods", "monsters", "serverside"]
 
 

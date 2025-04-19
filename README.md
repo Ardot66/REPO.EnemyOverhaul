@@ -4,6 +4,8 @@
 
 This mod includes small behaviour tweaks for some enemies and completely rewritten AI for others, all with the goal of giving enemies unique, fun, and deadly quirks.
 
+Now configurable! Fine-grained control of enemy behaviours, damage, and other things is planned to be added in the future.
+
 Enemy Overhaul is currently under active development, so expect bugs and wonky behaviour from enemies. Please submit an issue to the github if you want something to be fixed! More enemies may be 'improved' in the future.
 
 ## Changes

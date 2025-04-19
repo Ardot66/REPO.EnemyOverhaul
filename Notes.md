@@ -1,8 +1,25 @@
 # Notes
 
-## Playtesting Notes
+## Todo
 
-- Huntsman really needs that huh phase, I got fucked with no counterplay
+- Huntsman 'huh' phase
+- Trudge speed scaling at long distances
+- Double or even triple trudge health and drop reward
+- Look into Trudge not noticing extraction unlock
+- Add more messages when Trudge is approaching extraction or truck
+- More configurability
+  - Gnome valuable damage
+  - Trudge attack truck
+  - Damage values all around
+
+## Enemy Checklist
+
+A good enemy must have a good balance of these traits:
+- Danger
+- Counterplay
+- Unpredictability
+
+I need to work mainly on unpredictability.
 
 ## Misc Changes
 
@@ -68,6 +85,12 @@
     - If players hit it with items or the cart it will also aggro.
     - It will occasionally attempt to pick up and move items to help players, if players grab the item while it is doing this it will aggro.
     - Should pathfind to follow a particular player and get in their way a decent bit.
+  - Multiple states when near players, different counterplay in each state?
+    - Helpful state, where previous mechanics are kept
+      - Should be more difficult to aggro in this state.
+    - Aggressive state, where it roams around very quickly?
+      - Maybe attacks blindly for a bit.
+      - After maybe 10-15 secs goes back to being friendly.
 - Huntsman (Fixed!)
 - Reaper
   - Only aggro players not moving?

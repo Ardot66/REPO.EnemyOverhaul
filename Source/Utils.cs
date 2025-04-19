@@ -211,4 +211,23 @@ public static class Utils
 
         return destination;
     }
+
+    public static PlayerAvatar GetNearestPlayer(Vector3 position, out float distance)
+    {
+        PlayerAvatar closest = null;
+        distance = float.PositiveInfinity;
+
+        for(int x = 0; x < GameDirector.instance.PlayerList.Count; x++)
+        {
+            PlayerAvatar player = GameDirector.instance.PlayerList[x];
+            float curPlayerDistance = Vector3.Distance(player.transform.position, position);
+            if(closest == null || curPlayerDistance < distance)
+            {
+                closest = player;
+                distance = curPlayerDistance;
+            }
+        }
+
+        return closest;
+    }
 }

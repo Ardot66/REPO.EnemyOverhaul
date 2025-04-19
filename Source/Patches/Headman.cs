@@ -1,11 +1,11 @@
 using UnityEngine;
-using UnityEngine.AI;
+using BepInEx.Configuration;
 using HarmonyLib;
 using System.Collections.Generic;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
-public static class HeadmanPatches
+public static class HeadmanOverhaul
 {
     const int 
     VisionTimerMeta = 0,
@@ -23,16 +23,28 @@ public static class HeadmanPatches
         Pissed
     }
 
-    public static void Patch()
+    public static ConfigEntry<bool> OverhaulAI;
+
+    public static void Init()
     {
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(EnemyHeadController), "VisionTriggered"), 
-            prefix: new HarmonyMethod(typeof(HeadmanPatches), "VisionTriggeredPrefix")
+        OverhaulAI = Plugin.Config.Bind(
+            "Headman",
+            "OverhaulAI",
+            true,
+            "If true, Headman AI is overhauled"
         );
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(EnemyHeadController), "Update"),
-            postfix: new HarmonyMethod(typeof(HeadmanPatches), "UpdatePostfix")
-        );
+
+        if(OverhaulAI.Value)
+        {
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(EnemyHeadController), "VisionTriggered"), 
+                prefix: new HarmonyMethod(typeof(HeadmanOverhaul), "VisionTriggeredPrefix")
+            );
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(EnemyHeadController), "Update"),
+                postfix: new HarmonyMethod(typeof(HeadmanOverhaul), "UpdatePostfix")
+            );
+        }
     }
 
     public static void Start(EnemyHeadController instance, Enemy enemy)

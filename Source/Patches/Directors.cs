@@ -5,22 +5,6 @@ using System.Collections;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
-public static class DirectorPatches
-{
-    public static void Patch()
-    {
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(GameDirector), "Awake"),
-            postfix: new HarmonyMethod(typeof(DirectorPatches), "AwakePostfix")
-        );
-    }
-
-    public static void AwakePostfix(GameDirector __instance)
-    {
-        __instance.gameObject.AddComponent<OverhaulDirector>();
-    }
-}
-
 public class OverhaulDirector : MonoBehaviour
 {
     public static OverhaulDirector Instance;
@@ -32,6 +16,19 @@ public class OverhaulDirector : MonoBehaviour
     public int ExtractionOverflow = 0;
 
     public ExtractionPoint CurrentExtraction = null;
+
+    public static void Init()
+    {
+        Plugin.Harmony.Patch(
+            AccessTools.Method(typeof(GameDirector), "Awake"),
+            postfix: new HarmonyMethod(typeof(OverhaulDirector), "AwakePostfix")
+        );
+    }
+
+    public static void AwakePostfix(GameDirector __instance)
+    {
+        __instance.gameObject.AddComponent<OverhaulDirector>();
+    }
 
     public void Awake()
     {

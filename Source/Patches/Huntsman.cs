@@ -1,15 +1,44 @@
 using UnityEngine;
 using HarmonyLib;
+using BepInEx.Configuration;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
-public static class HuntsmanPatches
+public static class HuntsmanOverhaul
 {
-    public static void Patch()
+    public static ConfigEntry<bool> 
+        OverhaulDamageFalloff,
+        OverhaulTargetPlayerItems;
+
+    public static void Init()
     {
-        Plugin.Harmony.Patch(AccessTools.Method(typeof(EnemyHunter), "OnTouchPlayerGrabbedObject"), postfix: new HarmonyMethod(typeof(HuntsmanPatches), "HunterOnTouchPlayerGrabbedObjectPostfix"));
-        Plugin.Harmony.Patch(AccessTools.Method(typeof(EnemyHunter), "ShootRPC"), postfix: new HarmonyMethod(typeof(HuntsmanPatches), "HunterShootRPCPostFix"));
-        Plugin.Harmony.Patch(AccessTools.Method(typeof(EnemyRigidbody), "OnCollisionStay"), postfix: new HarmonyMethod(typeof(HuntsmanPatches), "EnemyOnCollisionStayPostfix"));
+        OverhaulDamageFalloff = Plugin.Config.Bind(
+            "Huntsman",
+            "OverhaulDamageFalloff",
+            true,
+            "If true, Huntsman damage reduces over long distances and increases at short range"
+        );
+        OverhaulTargetPlayerItems = Plugin.Config.Bind(
+            "Huntsman",
+            "OverhaulTargetPlayerItems",
+            true,
+            "If true, Huntsman shoot directly at valuables that touch it, not the players holding those valuables."
+        );
+
+        if(OverhaulDamageFalloff.Value)
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(EnemyHunter), "ShootRPC"), 
+                postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "HunterShootRPCPostFix"));
+
+        if(OverhaulTargetPlayerItems.Value)
+        {
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(EnemyHunter), "OnTouchPlayerGrabbedObject"), 
+                postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "HunterOnTouchPlayerGrabbedObjectPostfix"));
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(EnemyRigidbody), "OnCollisionStay"), 
+                postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "EnemyOnCollisionStayPostfix"));
+        }
     }
 
     public static void HunterOnTouchPlayerGrabbedObjectPostfix(EnemyHunter __instance)
@@ -45,7 +74,7 @@ public static class HuntsmanPatches
                 physGrabObject = other.gameObject.GetComponentInParent<PhysGrabObject>();
 
             if(physGrabObject && !__instance.enemy.CheckChase() && physGrabObject.playerGrabbing.Count > 0)
-                AccessTools.Field(typeof(EnemyRigidbody), "onTouchPlayerGrabbedObjectPosition").SetValue(__instance, other.gameObject.transform.position);
+                __instance.Set("onTouchPlayerGrabbedObjectPosition", other.transform.position);
         }
     }
 }

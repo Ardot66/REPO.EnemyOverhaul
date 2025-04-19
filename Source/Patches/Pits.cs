@@ -1,3 +1,4 @@
+using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.AI;
@@ -5,48 +6,59 @@ using System.Collections.Generic;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
-public static class PitsPatches
+public static class PitOverhaul
 {
-    public const int
-        MapHurtCollider = 0;
+    public const int MapHurtColliderMeta = 0;
 
-    public static void Patch()
+    public static ConfigEntry<bool> 
+        OverhaulPlayers,
+        OverhaulEnemies,
+        OverhaulItems;
+
+    public static void Init()
     {
-        // Plugin.Harmony.Patch(
-        //     AccessTools.Method(typeof(LevelGenerator), "Start"),    
-        //     prefix: new HarmonyMethod(typeof(PitsPatches), "StartPrefix")
-        // );
+        OverhaulPlayers = Plugin.Config.Bind(
+            "Pits",
+            "OverhaulPlayers",
+            true,
+            "If true, pit overhauled mechanics are applied to players");
+        OverhaulEnemies = Plugin.Config.Bind(
+            "Pits",
+            "OverhaulEnemies",
+            true,
+            "If true, pit overhauled mechanics are applied to enemies");
+        OverhaulItems = Plugin.Config.Bind(
+            "Pits",
+            "OverhaulItems",
+            true,
+            "If true, pit overhauled mechanics are applied to items");
+
+        if(!OverhaulPlayers.Value && !OverhaulEnemies.Value && !OverhaulItems.Value)
+            return;
+
         Plugin.Harmony.Patch(
             AccessTools.Method(typeof(LevelGenerator), "GenerateDone"),    
-            postfix: new HarmonyMethod(typeof(PitsPatches), "GenerateDonePostfix")
+            postfix: new HarmonyMethod(typeof(PitOverhaul), "GenerateDonePostfix")
         );
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(HurtCollider), "PlayerHurt"),
-            prefix: new HarmonyMethod(typeof(PitsPatches), "PlayerHurtPrefix")
-        );
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(HurtCollider), "EnemyHurt"),
-            prefix: new HarmonyMethod(typeof(PitsPatches), "EnemyHurtPrefix")
-        );
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(HurtCollider), "PhysObjectHurt"),
-            prefix: new HarmonyMethod(typeof(PitsPatches), "PhysObjectHurtPrefix")
-        );
+
+        if(OverhaulPlayers.Value)
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(HurtCollider), "PlayerHurt"),
+                prefix: new HarmonyMethod(typeof(PitOverhaul), "PlayerHurtPrefix")
+            );
+
+        if(OverhaulEnemies.Value)
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(HurtCollider), "EnemyHurt"),
+                prefix: new HarmonyMethod(typeof(PitOverhaul), "EnemyHurtPrefix")
+            );
+
+        if(OverhaulItems.Value)
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(HurtCollider), "PhysObjectHurt"),
+                prefix: new HarmonyMethod(typeof(PitOverhaul), "PhysObjectHurtPrefix")
+            );
     }
-
-    // public static bool StartPrefix(LevelGenerator __instance)
-    // {
-    //     // DEBUG
-
-    //     Level level = RunManager.instance.levelCurrent;
-    //     level.ModulesNormal1 = level.ModulesNormal3;
-    //     level.ModulesPassage1 = level.ModulesPassage3;
-    //     level.ModulesExtraction1 = level.ModulesExtraction3;
-
-    //     // DEBUG
-
-    //     return true;
-    // }
 
     public static void GenerateDonePostfix(LevelGenerator __instance)
     {
@@ -62,14 +74,14 @@ public static class PitsPatches
             if(hurtCollider.name != "Kill Box")
                 continue;
 
-            hurtCollider.SetMetadata(MapHurtCollider, true);
+            hurtCollider.SetMetadata(MapHurtColliderMeta, true);
             hurtCollider.physDestroy = false;
         }
     }
 
     public static bool PlayerHurtPrefix(HurtCollider __instance, PlayerAvatar _player)
     {
-        if(!__instance.GetMetadata(MapHurtCollider, false))
+        if(!__instance.GetMetadata(MapHurtColliderMeta, false))
             return true;
 
         __instance.onImpactAny.Invoke();
@@ -93,7 +105,7 @@ public static class PitsPatches
 
     public static bool EnemyHurtPrefix(HurtCollider __instance, Enemy _enemy)
     {
-        if(!__instance.GetMetadata(MapHurtCollider, false))
+        if(!__instance.GetMetadata(MapHurtColliderMeta, false))
             return true;
 
         __instance.onImpactAny.Invoke();
@@ -105,7 +117,7 @@ public static class PitsPatches
         _enemy.EnemyTeleported(finalPosition);
         EnemyHealth health = (EnemyHealth)_enemy.Get("Health");
         if(health != null)
-            health.Hurt(Random.Range(70, 100), __instance.transform.forward);
+            health.Hurt(Random.Range(100, 145), __instance.transform.forward);
         else if((bool)_enemy.Get("HasStateDespawn"))
         {
             _enemy.Get<EnemyParent, Enemy>("EnemyParent").SpawnedTimerSet(0f);
@@ -121,7 +133,7 @@ public static class PitsPatches
 
     public static bool PhysObjectHurtPrefix(ref bool __result, HurtCollider __instance, PhysGrabObject physGrabObject)
     {
-        if(!__instance.GetMetadata(MapHurtCollider, false))
+        if(!__instance.GetMetadata(MapHurtColliderMeta, false))
             return true;
 
         LevelPoint destination = Utils.ChooseLevelPoint(physGrabObject.transform.position, 40, 1f);

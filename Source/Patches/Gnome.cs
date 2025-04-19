@@ -1,16 +1,33 @@
 using System.Collections.Generic;
 using UnityEngine;
+using BepInEx.Configuration;
+using HarmonyLib;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
-public static class GnomePatches
+public static class GnomeOverhaul
 {
-    public static void GameStart()
-    {
-        // Reduces the damage gnomes do to items to a more reasonable amount
+    public static ConfigEntry<bool> OverhaulItemDamage;
 
-        GameObject gnome = Plugin.Enemies["gnome"];
-        List<HurtCollider> gnomeHurtColliders = Utils.GetHurtColliders(gnome.transform);
+    public static void Init()
+    {
+        OverhaulItemDamage = Plugin.Config.Bind(
+            "Gnome",
+            "OverhaulItemDamage",
+            true,
+            "If true, significantly reduces the damage that Gnomes do to items"
+        );
+
+        if(OverhaulItemDamage.Value)
+            Plugin.Harmony.Patch(
+                AccessTools.Method(typeof(EnemyGnome), "Start"),
+                postfix: new HarmonyMethod(typeof(GnomeOverhaul), "StartPostfix")
+            );
+    }
+
+    public static void StartPostfix(EnemyGnome __instance)
+    {
+        List<HurtCollider> gnomeHurtColliders = Utils.GetHurtColliders(__instance.enemy.GetComponentInParent<EnemyParent>().transform);
 
         for(int x = 0; x < gnomeHurtColliders.Count; x++)
         {

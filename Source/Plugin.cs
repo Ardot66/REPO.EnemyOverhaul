@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
@@ -11,23 +12,23 @@ namespace Ardot.REPO.EnemyOverhaul;
 public class Plugin : BaseUnityPlugin
 #pragma warning restore BepInEx002 // Classes with BepInPlugin attribute must inherit from BaseUnityPlugin
 {
-    public const string PluginGUID = "Ardot.REPO.REPOverhaul";
+    public const string PluginGUID = "Ardot.REPO.EnemyOverhaul";
 
-    public static Dictionary<string, GameObject> Enemies;
+    public new static ConfigFile Config;
     public static Harmony Harmony;
     internal static new ManualLogSource Logger;
 
     private void Awake()
     {
         Logger = base.Logger;
-
+        Config = base.Config;
         Harmony = new (PluginGUID);
-        Patches.Patch();
-        HuntsmanPatches.Patch();
-        HeadmanPatches.Patch();
-        PitsPatches.Patch();
-        RobePatches.Patch();
-        DirectorPatches.Patch();
-        TrudgePatches.Patch();
+
+        HuntsmanOverhaul.Init();
+        TrudgeOverhaul.Init();
+        HeadmanOverhaul.Init();
+        PitOverhaul.Init();
+        RobeOverhaul.Init();
+        OverhaulDirector.Init();
     }
 }

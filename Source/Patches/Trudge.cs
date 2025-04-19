@@ -3,16 +3,29 @@ using UnityEngine.AI;
 using System.Collections.Generic;
 using Photon.Pun;
 using HarmonyLib;
+using BepInEx.Configuration;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
-public static class TrudgePatches
+public static class TrudgeOverhaul
 {
-    public static void Patch()
+    public static ConfigEntry<bool> OverhaulAI;
+
+    public static void Init()
     {
+        OverhaulAI = Plugin.Config.Bind(
+            "Trudge",
+            "OverhaulAI",
+            true,
+            "If true, Trudge AI is overhauled"
+        );
+
+        if(!OverhaulAI.Value)
+            return;
+
         Plugin.Harmony.Patch(
             AccessTools.Method(typeof(EnemySlowWalker), "Start"),
-            prefix: new HarmonyMethod(typeof(TrudgePatches), "StartPrefix")
+            prefix: new HarmonyMethod(typeof(TrudgeOverhaul), "StartPrefix")
         );
     }
 
@@ -28,6 +41,7 @@ public static class TrudgePatches
         trudge.ParticleDeathBitsShort = __instance.particleDeathBitsShort;
         trudge.ParticleDeathSmoke = __instance.particleDeathSmoke;
 
+        trudge.FeetTransform = __instance.feetTransform;
         trudge.LookAtTransform = __instance.lookAtTransform;
         trudge.EnemyAnimator = trudgeAnim;
         trudge.RotationSpring = __instance.horizontalRotationSpring;
@@ -46,13 +60,12 @@ public class TrudgeOverride : MonoBehaviour
         Spawn,
         Idle,
         ApproachTarget,
-        LookAroundBegin,
-        LookAround,
         Notice,
+        ChargeBegin,
         Charge,
         Attack,
         StuckAttack,
-        AttackTarget,
+        DestroyTarget,
     }
     
     public PhotonView PhotonView;
@@ -61,13 +74,18 @@ public class TrudgeOverride : MonoBehaviour
     public EnemyVision Vision;
     public EnemyNavMeshAgent EnemyNavAgent;
     public NavMeshAgent NavAgent;
-    public EnemyRigidbody Rigidbody;
+    public EnemyRigidbody EnemyRigidbody;
+    public Rigidbody Rigidbody;
     public EnemySlowWalkerAnim EnemyAnimator;
     public EnemyStateInvestigate StateInvestigate;
     public Animator Animator;
     public SpringQuaternion RotationSpring;
     public Transform LookAtTransform;
+    public Transform FeetTransform;
     public MonoBehaviour Target;
+
+    public float PrevAggro = 0;
+    public float Aggro = 0;
 
     public record struct StateTimerOverride(TrudgeState State, float Time);
     public Stack<StateTimerOverride> StateTimerOverrides = new ();
@@ -81,16 +99,13 @@ public class TrudgeOverride : MonoBehaviour
     public float TargetClosestApproach = float.PositiveInfinity;
 
     public float StateTimer = 0f;
-    public float StateInternalTimer1 = 0f;
-    public float StateInternalTimer2 = 0f;
+
+    public object StateInternalState;
 
     public bool StateBeginImpulse = false;
     public bool StateEndImpulse = false;
-    public bool VisionImpulse = false;
-    public bool InvestigateImpulse = false;
-    public bool TouchImpulse = false;
-
-    public PlayerAvatar TouchedPlayer;
+    public bool StateSetImpulse = false;
+    public bool HandleAggro = true;
 
     public int AnimMoving = Animator.StringToHash("moving");
 	public int AnimStunned = Animator.StringToHash("stunned");
@@ -123,9 +138,10 @@ public class TrudgeOverride : MonoBehaviour
     public void Start()
     {
         Vision = (EnemyVision)Enemy.Get("Vision");
-        Rigidbody = (EnemyRigidbody)Enemy.Get("Rigidbody");
+        EnemyRigidbody = (EnemyRigidbody)Enemy.Get("Rigidbody");
         Animator = (Animator)EnemyAnimator.Get("animator");
         EnemyParent = (EnemyParent)Enemy.Get("EnemyParent");
+        Rigidbody = (Rigidbody)EnemyRigidbody.Get("rb");
         EnemyStateSpawn stateSpawn = GetComponent<EnemyStateSpawn>();
         EnemyHealth health = (EnemyHealth)Enemy.Get("Health");
 
@@ -142,21 +158,21 @@ public class TrudgeOverride : MonoBehaviour
             collider.playerDamage = 30;
         }
         
-        Vision.onVisionTriggered.AddListener(() => VisionImpulse = true);
-        Rigidbody.onGrabbed.AddListener(() => {
-            TouchImpulse = true; 
-            TouchedPlayer = (PlayerAvatar)Rigidbody.Get("onGrabbedPlayerAvatar");
+        EnemyRigidbody.onGrabbed.AddListener(() => {
+            if(HandleAggro)
+                Aggro += Time.deltaTime * 5f;
         });
-        Rigidbody.onTouchPlayer.AddListener(() => {
-            TouchImpulse = true; 
-            TouchedPlayer = (PlayerAvatar)Rigidbody.Get("onTouchPlayerAvatar");
+        EnemyRigidbody.onTouchPlayer.AddListener(() => {
+            if(HandleAggro)
+                Aggro += Time.deltaTime * 5f;
         });
-        Rigidbody.onTouchPlayerGrabbedObject.AddListener(() => {
-            TouchImpulse = true; 
-            TouchedPlayer = (PlayerAvatar)Rigidbody.Get("onTouchPlayerGrabbedObjectAvatar");
+        EnemyRigidbody.onTouchPlayerGrabbedObject.AddListener(() => {
+            if(HandleAggro)
+                Aggro += Time.deltaTime * 5f;
         });
         StateInvestigate.onInvestigateTriggered.AddListener(() => {
-            InvestigateImpulse = true;
+            if(HandleAggro)
+                Aggro += 2f / Vector3.Distance(transform.position, (Vector3)StateInvestigate.Get("onInvestigateTriggeredPosition"));
         });
         stateSpawn.OnSpawn.AddListener(() => {
             if(Utils.IsHost())
@@ -175,29 +191,35 @@ public class TrudgeOverride : MonoBehaviour
             GameDirector.instance.CameraShake.ShakeDistance(3f, 3f, 10f, transform.position, 0.5f);
             GameDirector.instance.CameraImpact.ShakeDistance(3f, 3f, 10f, transform.position, 0.05f);
             if (Utils.IsHost())
+            {
                 EnemyParent.Despawn();
+                SetState(TrudgeState.Spawn, 1f);
+            }
         });
-        // health.onHurt.AddListener(() => {
-
-        // });
+        health.onHurt.AddListener(() => {
+            if(HandleAggro)
+                Aggro += 15f;
+        });
     }
 
     public void Update()
     {
+        if(Utils.IsHost() && State != TrudgeState.DestroyTarget && (OverhaulDirector.Instance.ExtractionCompletedImpulse || OverhaulDirector.Instance.ExtractionUnlockedImpulse))
+        {
+            TargetClosestApproach = float.PositiveInfinity;
+            SetState(TrudgeState.Idle, 0f);
+        }
+
         if(Enemy.CurrentState == EnemyState.Despawn || Enemy.CurrentState == EnemyState.Stunned)
             return;
 
         StateTimer -= Time.deltaTime;
-        StateInternalTimer1 -= Time.deltaTime;
-        StateInternalTimer2 -= Time.deltaTime;
 
         if(FutureState != TrudgeState.Invalid)
             StateEndImpulse = true;
-
-        if(Utils.IsHost() && State != TrudgeState.AttackTarget && (OverhaulDirector.Instance.ExtractionCompletedImpulse || OverhaulDirector.Instance.ExtractionUnlockedImpulse))
-            SetState(TrudgeState.Idle, 0f);
         
         HeadLookAt();
+        AggroLogic();
 
         switch(State)
         {
@@ -205,13 +227,14 @@ public class TrudgeOverride : MonoBehaviour
             {
                 if(ConsumeStateImpulse())
                 {
+                    HandleAggro = true;
                     MonoBehaviour target = GetTarget();
                     LevelPoint spawnPoint = Utils.ChooseLevelPoint(target.transform.position, 50f, 0.2f);
                     Enemy.EnemyTeleported(spawnPoint.transform.position);
                 }
 
                 if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
-                if(StateTimer <= 0)
+                else if(StateTimer <= 0)
                     SetState(TrudgeState.Idle, 1f);
 
                 break;
@@ -219,16 +242,20 @@ public class TrudgeOverride : MonoBehaviour
             case TrudgeState.Idle:
             {
                 if(ConsumeStateImpulse())
+                {
+                    HandleAggro = true;
                     EnemyNavAgent.ResetPath();
+                }
+
+                NearTargetLogic();
 
                 if(!Utils.IsHost()) {}
-                else if(PlayerTouchedNoticeLogic() || NearTargetLogic() || InvestigateLogic()) {}
                 else if(StateTimer <= 0)
                 {   
                     Target = GetTarget();
                     
                     SyncTargets();
-                    SetState(TrudgeState.ApproachTarget, Random.Range(15f, 35f));
+                    SetState(TrudgeState.ApproachTarget, Random.Range(5f, 10f));
                 }
 
                 break;
@@ -239,26 +266,42 @@ public class TrudgeOverride : MonoBehaviour
                 {
                     if(Target != null && Utils.FindNavPosition(Target.transform.position, out Vector3 navPosition))
                     {
+                        HandleAggro = true;
                         EnemyNavAgent.SetDestination(navPosition);
-                        OverrideMovement(0.2f, 10f, 1f);
+
+                        float speed;
+                        float targetDistance = Vector3.Distance(transform.position, Target.transform.position);
+
+                        if(targetDistance < 40f)
+                            speed = 0.15f;
+                        else if(targetDistance < 80f)
+                            speed = 0.3f;
+                        else
+                            speed = 0.4f;
+
+                        if(Target is LevelPoint && (int)RoundDirector.instance.Get("extractionPointsCompleted") != 1)
+                            speed *= 4;
+
+                        OverrideMovement(speed, 10f, 1f);
                     }
                     else if (Utils.IsHost())
                         SetState(TrudgeState.Idle, 0f);
                     else
                         StateBeginImpulse = true;
-                    
-                    Rigidbody.Set("notMovingTimer", 0f);
+
+                    HandleAggro = true;   
+                    EnemyRigidbody.Set("notMovingTimer", 0f);
                     Animator.SetBool(AnimMoving, true);
                 }
 
                 LookTowardsMovement();
+                NearTargetLogic();
 
                 if(!Utils.IsHost()) {}
-                else if(PlayerTouchedNoticeLogic() || NearTargetLogic() || InvestigateLogic()) {}
-                else if((float)Rigidbody.Get("notMovingTimer") > 3f)
+                else if((float)EnemyRigidbody.Get("notMovingTimer") > 3f)
                     SetState(TrudgeState.StuckAttack, 3f);
                 else if(StateTimer <= 0)
-                    SetState(TrudgeState.LookAroundBegin, Random.Range(4f, 6f));
+                    SetState(TrudgeState.Idle, 0f);
                 
                 if(StateEndImpulse)
                 {
@@ -268,63 +311,13 @@ public class TrudgeOverride : MonoBehaviour
 
                 break;
             }
-            case TrudgeState.LookAroundBegin:
-            {
-                if(ConsumeStateImpulse())
-                {
-                    EnemyNavAgent.ResetPath();
-                    Animator.SetTrigger(AnimNotice);
-                    RotationSpring.speed = 2f;
-                }
-
-                if(!Utils.IsHost()) {}
-                else if(PlayerTouchedNoticeLogic()) {}
-                else if(StateTimer <= 0)
-                    SetState(TrudgeState.LookAround, Random.Range(3f, 5f));
-
-                break;
-            }
-            case TrudgeState.LookAround:
-            {
-                if(ConsumeStateImpulse())
-                {
-                    RotationSpring.speed = 2f;
-                    Look(Random.insideUnitCircle);
-                }
-
-                if(InvestigateImpulse)
-                {
-                    StateTimer += 3f;   
-                    Look((Vector3)StateInvestigate.Get("onInvestigateTriggeredPosition") - transform.position);
-                }
-
-                if(!Utils.IsHost()) {}
-                else if(GetPlayerViewed(out PlayerAvatar player))
-                {
-                    Target = player;
-                    SyncTargets();
-                    SetState(TrudgeState.Notice, 2f);
-                }
-                else if(PlayerTouchedNoticeLogic()) {}
-                else if(StateTimer <= 0)
-                {
-                    float random = Random.Range(0f, 1f);
-                    if(random < 0.4f)
-                        SetState(TrudgeState.LookAround, Random.Range(3f, 5f));
-                    else
-                        SetState(TrudgeState.Idle, 0f);
-                }
-
-                if(StateEndImpulse)
-                    RotationSpring.speed = DefaultRotationSpeed;
-
-                break;
-            }
             case TrudgeState.Notice:
             {
                 if(ConsumeStateImpulse())
                 {
+                    HandleAggro = false;
                     EnemyNavAgent.ResetPath();
+                    EnemyNavAgent.Warp(FeetTransform.position);
                     Animator.SetTrigger(AnimNotice);
                 }
 
@@ -333,7 +326,7 @@ public class TrudgeOverride : MonoBehaviour
 
                 if(!Utils.IsHost()) {}
                 else if(StateTimer <= 0)
-                    SetState(TrudgeState.Charge, 8f);
+                    SetState(TrudgeState.Charge, 2f);
 
                 break;
             }
@@ -341,41 +334,29 @@ public class TrudgeOverride : MonoBehaviour
             {
                 if(ConsumeStateImpulse())
                 {
-                    if(Target != null && Utils.FindNavPosition(Target.transform.position, out Vector3 navPosition))
-                        EnemyNavAgent.SetDestination(navPosition);
-                    else if (Utils.IsHost())
-                        SetState(TrudgeState.Idle, 0f);
-                    else
+                    if(Target == null)
                         StateBeginImpulse = true;
+                    else
+                    {
+                        StateInternalState = Target.transform.position + Random.insideUnitSphere;
+                        EnemyNavAgent.SetDestination((Vector3)StateInternalState);
 
-                    OverrideMovement(10f, 10f, 2f);
-                    StateInternalTimer1 = 0.5f;
-                    StateInternalTimer2 = 2f;
-                    Animator.SetBool(AnimMoving, true);
+                        HandleAggro = false;
+                        OverrideMovement(10f, 10, 5f);
+                        Animator.SetTrigger(AnimJump);
+                        Rigidbody.AddForce(Vector3.up * 20, ForceMode.Impulse);
+                    }
                 }
 
-                if(StateInternalTimer1 <= 0)
-                {
-                    StateInternalTimer1 = 0.1f;
-
-                    if(Utils.FindNavPosition(transform.position + NavAgent.velocity.normalized, out Vector3 navPosition, 1f))
-                        EnemyNavAgent.SetDestination(navPosition);
-                }
-
+                Vector3 targetPosition = (Vector3)StateInternalState;
                 LookTowardsMovement();
 
                 if(!Utils.IsHost()) {}
-                else if (
-                    StateTimer <= 0 || 
-                    (Target != null && Utils.WeightedDistance(transform.position, Target.transform.position, y:0.2f) < 3f) || 
-                    (StateInternalTimer2 <= 0 && Vector3.Magnitude(NavAgent.velocity) < 3f))
-                    SetState(TrudgeState.Attack, 5f);
+                else if (StateTimer <= 0 || Utils.WeightedDistance(targetPosition, FeetTransform.position, y:0f) < 1f)
+                    SetState(TrudgeState.Attack, 4f);
 
                 if(StateEndImpulse)
-                {
-                    Animator.SetBool(AnimMoving, false);
                     EndMovementOverride();
-                }
 
                 break;
             }
@@ -383,24 +364,46 @@ public class TrudgeOverride : MonoBehaviour
             {
                 if(ConsumeStateImpulse())
                 {
+                    Aggro -= 8f;
                     EnemyNavAgent.ResetPath();
-                    EnemyNavAgent.Warp(Rigidbody.transform.position);
+                    EnemyNavAgent.Warp(FeetTransform.position);
                     Animator.SetTrigger(AnimAttack);
+                    HandleAggro = false;
                 }
 
-                if(!Utils.IsHost()) {}
-                else if(StateTimer <= 0)
-                    SetState(TrudgeState.Idle, 0f);
-                    
-                if(StateEndImpulse)
-                    Target = null;
+                if(Utils.IsHost())
+                {
+                    if(StateTimer <= 0)
+                    {
+                        if(Target != null)
+                        {
+                            float targetDistance = Vector3.Distance(transform.position, Target.transform.position);
+
+                            if(Target.GetComponent<PlayerAvatar>() == null && targetDistance < 2f)
+                                SetState(TrudgeState.DestroyTarget, 5f);
+
+                            if(Aggro > 8f)
+                            {
+                                if(targetDistance < 12f)
+                                    SetState(TrudgeState.Charge, 4f);
+
+                                SetState(TrudgeState.Attack, 4f);
+                            }
+                        }
+
+                        SetState(TrudgeState.Idle, 0f);
+                    }
+                }
 
                 break;
             }
             case TrudgeState.StuckAttack:
             {
                 if(ConsumeStateImpulse())
+                {
+                    HandleAggro = true;                    
                     Animator.SetTrigger(AnimStuckAttack);
+                }
 
                 if(!Utils.IsHost()) {}
                 else if(StateTimer <= 0)
@@ -408,7 +411,7 @@ public class TrudgeOverride : MonoBehaviour
 
                 break;
             }
-            case TrudgeState.AttackTarget:
+            case TrudgeState.DestroyTarget:
             {
                 if(ConsumeStateImpulse())
                 {
@@ -416,16 +419,18 @@ public class TrudgeOverride : MonoBehaviour
                         StateBeginImpulse = true;
                     else
                     {
-                        Animator.SetTrigger(AnimAttack);
+                        HandleAggro = true;                        
                         ExtractionPoint targetExtraction = Target.GetComponent<ExtractionPoint>();
                         
                         if(targetExtraction != null)
                             OverhaulDirector.Instance.DestroyExtractionPoint(targetExtraction);
                         else
                             OverhaulDirector.Instance.GameOver();
+
+                        TargetClosestApproach = float.PositiveInfinity;
                     }
                 }
-
+                
                 if(!Utils.IsHost()) {}
                 else if(StateTimer <= 0)
                     SetState(TrudgeState.Idle, 0f);
@@ -439,46 +444,36 @@ public class TrudgeOverride : MonoBehaviour
 
 		transform.rotation = SemiFunc.SpringQuaternionGet(RotationSpring, RotationTarget, Time.deltaTime);
 
-        StateEndImpulse = false;
-        TouchImpulse = false;
-        VisionImpulse = false;
-        InvestigateImpulse = false;
-
-        if(FutureState != TrudgeState.Invalid)
+        if(FutureState != TrudgeState.Invalid && !StateSetImpulse)
         {
             StateBeginImpulse = true;
             State = FutureState;
             FutureState = TrudgeState.Invalid;
         }
-    }
 
-    public void SetState(TrudgeState state, float time)
-    {
-        if(StateTimerOverrides.Count > 0)
-        {
-            StateTimerOverride timerOverride = StateTimerOverrides.Pop();
-            if(timerOverride.State == state)
-                time = timerOverride.Time;
-        }
-        
-        StateBeginImpulse = true;
-        StateEndImpulse = true;
-        StateTimer = time;
-        State = state;
-
-        if(SemiFunc.IsMultiplayer())
-            PhotonView.RPC("SetStateRPC", RpcTarget.Others, state, time);
+        StateEndImpulse = false;
+        StateSetImpulse = false;
     }
 
     [PunRPC]
-    private void SetStateRPC(TrudgeState state, float time)
+    public void SetState(TrudgeState state, float time)
     {
-        FutureState = state;
+        if(FutureState != TrudgeState.Invalid)
+            return;
+        
         StateTimer = time;
+        FutureState = state;
+        StateSetImpulse = true;
+
+        if(SemiFunc.IsMultiplayer() && SemiFunc.IsMasterClient())
+            PhotonView.RPC("SetState", RpcTarget.Others, state, time);
     }
 
     public void SyncTargets()
     {
+        if(Target == null)
+            return;
+
         PhotonView targetPhotonView = Target.GetComponent<PhotonView>();
         int targetID;
 
@@ -536,15 +531,6 @@ public class TrudgeOverride : MonoBehaviour
         RotationTarget.eulerAngles = new Vector3(0f, RotationTarget.eulerAngles.y, 0f);
     }
 
-    public bool InvestigateLogic()
-    {
-        if(!InvestigateImpulse || Random.Range(0f, 1f) < 0.95f)
-            return false;
-
-        SetState(TrudgeState.LookAroundBegin, 2f);
-        return true;
-    }
-
     public bool NearTargetLogic()
     {
         if(Target == null)
@@ -552,66 +538,70 @@ public class TrudgeOverride : MonoBehaviour
 
         float targetDistance = Utils.WeightedDistance(transform.position, Target.transform.position, y:0.2f);
 
-        if(targetDistance < 100f && TargetClosestApproach > 100f)
+        if(Target.GetComponent<PlayerAvatar>() == null)
         {
-            TargetClosestApproach = targetDistance;
-            SemiFunc.UIBigMessage("UNIDENTIFIED MASS DETECTED", "{!}", 20f, Color.yellow, Color.red);
-            BigMessageUI.instance.Set("bigMessageTimer", 3f);
-        }
-        if(targetDistance < 20f && TargetClosestApproach > 20f)
-        {
-            TargetClosestApproach = targetDistance;
-            SemiFunc.UIBigMessage("UNIDENTIFIED MASS APPROACHING ASSETS", "{!}", 20f, Color.red, Color.red);
-            BigMessageUI.instance.Set("bigMessageTimer", 3f);
-        }
-        if(targetDistance < 1f)
-        {
-            SetState(TrudgeState.AttackTarget, 5f);
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool PlayerTouchedNoticeLogic()
-    {
-        if(TouchImpulse)
-        {
-            Target = TouchedPlayer;
-            SyncTargets();
-            SetState(TrudgeState.Notice, 2f);
-            return true;
-        }
-
-        return false;
-    }
-
-    public bool GetPlayerViewed(out PlayerAvatar player)
-    {
-        player = null;
-
-        if(VisionImpulse)
-        {
-            int mostVisionsID = -1;
-            int mostVisions = 0;
-
-            foreach(KeyValuePair<int, int> visionData in Vision.VisionsTriggered)
+            if(targetDistance < 6f && TargetClosestApproach > 6f)
             {
-                if(visionData.Value > mostVisions)
-                {
-                    mostVisionsID = visionData.Key;
-                    mostVisions = visionData.Value;
-                }
+                SemiFunc.UIBigMessage("TIME IS RUNNING OUT", "{!}", 20f, Color.red, Color.red);
+                BigMessageUI.instance.Set("bigMessageTimer", 3f);
+            }
+            else if(targetDistance < 10f && TargetClosestApproach > 10f)
+            {
+                SemiFunc.UIBigMessage("DANGER [REDACTED] MASS DANGER HURRY", "{!}", 20f, Color.red, Color.red);
+                BigMessageUI.instance.Set("bigMessageTimer", 3f);
+            }
+            else if(targetDistance < 20f && TargetClosestApproach > 20f)
+            {
+                SemiFunc.UIBigMessage("UNIDENTIFIED MASS APPROACHING ASSETS", "{!}", 20f, Color.red, Color.red);
+                BigMessageUI.instance.Set("bigMessageTimer", 3f);
+            }
+            else if(targetDistance < 40f && TargetClosestApproach > 40f)
+            {
+                SemiFunc.UIBigMessage("UNIDENTIFIED MASS GETTING CLOSER", "{!}", 20f, Color.red, Color.red);
+                BigMessageUI.instance.Set("bigMessageTimer", 3f);
+            }
+            else if(targetDistance < 100f && TargetClosestApproach > 100f)
+            {
+                SemiFunc.UIBigMessage("UNIDENTIFIED MASS DETECTED", "{!}", 20f, Color.yellow, Color.red);
+                BigMessageUI.instance.Set("bigMessageTimer", 3f);
             }
 
-            if(mostVisionsID == -1)
-                return false;
-
-            player = PhotonView.Find(mostVisionsID).GetComponent<PlayerAvatar>();
-            return true;
+            TargetClosestApproach = targetDistance;
+            
+            if(Utils.IsHost() && targetDistance < 4f)
+            {
+                SetState(TrudgeState.Charge, 4f);
+                return true;
+            }
         }
 
         return false;
+    }
+
+    public void AggroLogic()
+    {
+        if(!HandleAggro)
+            return;
+
+        Aggro = Mathf.Max(Aggro - Time.deltaTime, 0);
+
+        if(Aggro > 7.5f && PrevAggro < 7.5f)
+            EnemyAnimator.sfxNoticeVoice.Play(transform.position);
+        
+        if(Utils.IsHost() && Aggro > 15f && PrevAggro < 15f)
+        {
+            PlayerAvatar nearestPlayer = Utils.GetNearestPlayer(transform.position, out float distance);
+
+            if(nearestPlayer != null && distance < 12f)    
+            {
+                Target = nearestPlayer;
+                SetState(TrudgeState.Notice, Random.Range(1f, 2f));
+            }
+            else
+                SetState(TrudgeState.Attack, 3f);
+        }
+
+        PrevAggro = Aggro;
     }
 
     public void HeadLookAt()
@@ -623,7 +613,7 @@ public class TrudgeOverride : MonoBehaviour
     public void OverrideMovement(float speed, float rigidbodySpeed, float acceleration, float time = float.PositiveInfinity)
     {
         EnemyNavAgent.OverrideAgent(speed, acceleration, time);
-        Rigidbody.OverrideFollowPosition(time, rigidbodySpeed);
+        EnemyRigidbody.OverrideFollowPosition(time, rigidbodySpeed);
     }
 
     public void EndMovementOverride()

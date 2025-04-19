@@ -83,28 +83,16 @@ public class TrudgeOverride : MonoBehaviour
     public Transform LookAtTransform;
     public Transform FeetTransform;
     public MonoBehaviour Target;
+    public StateMachine<TrudgeState> State;
 
     public float PrevAggro = 0;
     public float Aggro = 0;
-
-    public record struct StateTimerOverride(TrudgeState State, float Time);
-    public Stack<StateTimerOverride> StateTimerOverrides = new ();
-
-    public TrudgeState State = TrudgeState.Invalid;
-    public TrudgeState FutureState = TrudgeState.Invalid;
 
     public Quaternion RotationTarget;
 
     public float DefaultRotationSpeed;
     public float TargetClosestApproach = float.PositiveInfinity;
 
-    public float StateTimer = 0f;
-
-    public object StateInternalState;
-
-    public bool StateBeginImpulse = false;
-    public bool StateEndImpulse = false;
-    public bool StateSetImpulse = false;
     public bool HandleAggro = true;
 
     public int AnimMoving = Animator.StringToHash("moving");
@@ -133,6 +121,8 @@ public class TrudgeOverride : MonoBehaviour
         EnemyNavAgent = GetComponent<EnemyNavMeshAgent>(); 
         NavAgent = GetComponent<NavMeshAgent>();
         StateInvestigate = GetComponent<EnemyStateInvestigate>();
+
+        State = new StateMachine<TrudgeState>(StateMachine);
     }
 
     public void Start()
@@ -204,7 +194,7 @@ public class TrudgeOverride : MonoBehaviour
 
     public void Update()
     {
-        if(Utils.IsHost() && State != TrudgeState.DestroyTarget && (OverhaulDirector.Instance.ExtractionCompletedImpulse || OverhaulDirector.Instance.ExtractionUnlockedImpulse))
+        if(Utils.IsHost() && State.State != TrudgeState.DestroyTarget && (OverhaulDirector.Instance.ExtractionCompletedImpulse || OverhaulDirector.Instance.ExtractionUnlockedImpulse))
         {
             TargetClosestApproach = float.PositiveInfinity;
             SetState(TrudgeState.Idle, 0f);
@@ -212,20 +202,22 @@ public class TrudgeOverride : MonoBehaviour
 
         if(Enemy.CurrentState == EnemyState.Despawn || Enemy.CurrentState == EnemyState.Stunned)
             return;
-
-        StateTimer -= Time.deltaTime;
-
-        if(FutureState != TrudgeState.Invalid)
-            StateEndImpulse = true;
         
         HeadLookAt();
-        AggroLogic();
+        AggroLogic();         
 
-        switch(State)
+        State.Update(Time.deltaTime);
+
+		transform.rotation = SemiFunc.SpringQuaternionGet(RotationSpring, RotationTarget, Time.deltaTime);
+    }
+
+    public void StateMachine()
+    {
+        switch(State.State)
         {
             case TrudgeState.Spawn:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     HandleAggro = true;
                     MonoBehaviour target = GetTarget();
@@ -234,14 +226,14 @@ public class TrudgeOverride : MonoBehaviour
                 }
 
                 if(!SemiFunc.IsMasterClientOrSingleplayer()) {}
-                else if(StateTimer <= 0)
+                else if(State.StateTimer <= 0)
                     SetState(TrudgeState.Idle, 1f);
 
                 break;
             }
             case TrudgeState.Idle:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     HandleAggro = true;
                     EnemyNavAgent.ResetPath();
@@ -250,7 +242,7 @@ public class TrudgeOverride : MonoBehaviour
                 NearTargetLogic();
 
                 if(!Utils.IsHost()) {}
-                else if(StateTimer <= 0)
+                else if(State.StateTimer <= 0)
                 {   
                     Target = GetTarget();
                     
@@ -262,7 +254,7 @@ public class TrudgeOverride : MonoBehaviour
             }
             case TrudgeState.ApproachTarget:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     if(Target != null && Utils.FindNavPosition(Target.transform.position, out Vector3 navPosition))
                     {
@@ -287,7 +279,7 @@ public class TrudgeOverride : MonoBehaviour
                     else if (Utils.IsHost())
                         SetState(TrudgeState.Idle, 0f);
                     else
-                        StateBeginImpulse = true;
+                        State.StateStartImpulse = true;
 
                     HandleAggro = true;   
                     EnemyRigidbody.Set("notMovingTimer", 0f);
@@ -300,10 +292,10 @@ public class TrudgeOverride : MonoBehaviour
                 if(!Utils.IsHost()) {}
                 else if((float)EnemyRigidbody.Get("notMovingTimer") > 3f)
                     SetState(TrudgeState.StuckAttack, 3f);
-                else if(StateTimer <= 0)
+                else if(State.StateTimer <= 0)
                     SetState(TrudgeState.Idle, 0f);
                 
-                if(StateEndImpulse)
+                if(State.StateEndImpulse)
                 {
                     Animator.SetBool(AnimMoving, false);
                     EndMovementOverride();
@@ -313,7 +305,7 @@ public class TrudgeOverride : MonoBehaviour
             }
             case TrudgeState.Notice:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     HandleAggro = false;
                     EnemyNavAgent.ResetPath();
@@ -325,21 +317,21 @@ public class TrudgeOverride : MonoBehaviour
                     Look(Target.transform.position - transform.position);
 
                 if(!Utils.IsHost()) {}
-                else if(StateTimer <= 0)
+                else if(State.StateTimer <= 0)
                     SetState(TrudgeState.Charge, 2f);
 
                 break;
             }
             case TrudgeState.Charge:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     if(Target == null)
-                        StateBeginImpulse = true;
+                        State.StateStartImpulse = true;
                     else
                     {
-                        StateInternalState = Target.transform.position + Random.insideUnitSphere;
-                        EnemyNavAgent.SetDestination((Vector3)StateInternalState);
+                        State.SetStateData(0, Target.transform.position + Random.insideUnitSphere);
+                        EnemyNavAgent.SetDestination(State.GetStateData<Vector3>(0));
 
                         HandleAggro = false;
                         OverrideMovement(10f, 10, 5f);
@@ -348,21 +340,21 @@ public class TrudgeOverride : MonoBehaviour
                     }
                 }
 
-                Vector3 targetPosition = (Vector3)StateInternalState;
+                Vector3 targetPosition = State.GetStateData<Vector3>(0);
                 LookTowardsMovement();
 
                 if(!Utils.IsHost()) {}
-                else if (StateTimer <= 0 || Utils.WeightedDistance(targetPosition, FeetTransform.position, y:0f) < 1f)
+                else if (State.StateTimer <= 0 || Utils.WeightedDistance(targetPosition, FeetTransform.position, y:0f) < 1f)
                     SetState(TrudgeState.Attack, 4f);
 
-                if(StateEndImpulse)
+                if(State.StateEndImpulse)
                     EndMovementOverride();
 
                 break;
             }
             case TrudgeState.Attack:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     Aggro -= 8f;
                     EnemyNavAgent.ResetPath();
@@ -373,7 +365,7 @@ public class TrudgeOverride : MonoBehaviour
 
                 if(Utils.IsHost())
                 {
-                    if(StateTimer <= 0)
+                    if(State.StateTimer <= 0)
                     {
                         if(Target != null)
                         {
@@ -399,24 +391,24 @@ public class TrudgeOverride : MonoBehaviour
             }
             case TrudgeState.StuckAttack:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     HandleAggro = true;                    
                     Animator.SetTrigger(AnimStuckAttack);
                 }
 
                 if(!Utils.IsHost()) {}
-                else if(StateTimer <= 0)
+                else if(State.StateTimer <= 0)
                     SetState(TrudgeState.Idle, 0f);
 
                 break;
             }
             case TrudgeState.DestroyTarget:
             {
-                if(ConsumeStateImpulse())
+                if(State.ConsumeStateImpulse())
                 {
                     if(Target == null)
-                        StateBeginImpulse = true;
+                        State.StateStartImpulse = true;
                     else
                     {
                         HandleAggro = true;                        
@@ -432,40 +424,23 @@ public class TrudgeOverride : MonoBehaviour
                 }
                 
                 if(!Utils.IsHost()) {}
-                else if(StateTimer <= 0)
+                else if(State.StateTimer <= 0)
                     SetState(TrudgeState.Idle, 0f);
                         
-                if(StateEndImpulse)
+                if(State.StateEndImpulse)
                     Target = null;
 
                 break;
             }
-        }            
-
-		transform.rotation = SemiFunc.SpringQuaternionGet(RotationSpring, RotationTarget, Time.deltaTime);
-
-        if(FutureState != TrudgeState.Invalid && !StateSetImpulse)
-        {
-            StateBeginImpulse = true;
-            State = FutureState;
-            FutureState = TrudgeState.Invalid;
-        }
-
-        StateEndImpulse = false;
-        StateSetImpulse = false;
+        }   
     }
 
     [PunRPC]
     public void SetState(TrudgeState state, float time)
     {
-        if(FutureState != TrudgeState.Invalid)
-            return;
-        
-        StateTimer = time;
-        FutureState = state;
-        StateSetImpulse = true;
+        bool stateSet = State.SetState(state, time);
 
-        if(SemiFunc.IsMultiplayer() && SemiFunc.IsMasterClient())
+        if(stateSet && SemiFunc.IsMultiplayer() && SemiFunc.IsMasterClient())
             PhotonView.RPC("SetState", RpcTarget.Others, state, time);
     }
 
@@ -497,17 +472,6 @@ public class TrudgeOverride : MonoBehaviour
             Target = LevelGenerator.Instance.LevelPathTruck;
         else
             Target = PhotonView.Find(targetID);
-    }
-
-    public bool ConsumeStateImpulse()
-    {
-        if(StateBeginImpulse)
-        {
-            StateBeginImpulse = false;
-            return true;
-        }
-
-        return false;
     }
 
     public MonoBehaviour GetTarget()

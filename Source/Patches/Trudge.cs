@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using HarmonyLib;
 using BepInEx.Configuration;
+using System.Reflection;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
@@ -13,19 +14,16 @@ public static class TrudgeOverhaul
 
     public static void Init()
     {
-        OverhaulAI = Plugin.Config.Bind(
+        OverhaulAI = Plugin.BindConfig(
             "Trudge",
             "OverhaulAI",
             true,
-            "If true, Trudge AI is overhauled"
-        );
-
-        if(!OverhaulAI.Value)
-            return;
-
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(EnemySlowWalker), "Start"),
-            prefix: new HarmonyMethod(typeof(TrudgeOverhaul), "StartPrefix")
+            "If true, Trudge AI is overhauled",
+            () => Plugin.SetPatch(
+                OverhaulAI.Value,
+                AccessTools.Method(typeof(EnemySlowWalker), "Start"),
+                prefix: new HarmonyMethod(typeof(TrudgeOverhaul), "StartPrefix")
+            )
         );
     }
 

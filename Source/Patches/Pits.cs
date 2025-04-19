@@ -17,47 +17,44 @@ public static class PitOverhaul
 
     public static void Init()
     {
-        OverhaulPlayers = Plugin.Config.Bind(
+        OverhaulPlayers = Plugin.BindConfig(
             "Pits",
             "OverhaulPlayers",
             true,
-            "If true, pit overhauled mechanics are applied to players");
-        OverhaulEnemies = Plugin.Config.Bind(
+            "If true, pit overhauled mechanics are applied to players",
+            () => Plugin.SetPatch(
+                OverhaulPlayers.Value,
+                AccessTools.Method(typeof(HurtCollider), "PlayerHurt"),
+                prefix: new HarmonyMethod(typeof(PitOverhaul), "PlayerHurtPrefix")
+            )
+        );
+        OverhaulEnemies = Plugin.BindConfig(
             "Pits",
             "OverhaulEnemies",
             true,
-            "If true, pit overhauled mechanics are applied to enemies");
-        OverhaulItems = Plugin.Config.Bind(
+            "If true, pit overhauled mechanics are applied to enemies",
+            () => Plugin.SetPatch(
+                OverhaulEnemies.Value,
+                AccessTools.Method(typeof(HurtCollider), "EnemyHurt"),
+                prefix: new HarmonyMethod(typeof(PitOverhaul), "EnemyHurtPrefix")
+            )
+        );
+        OverhaulItems = Plugin.BindConfig(
             "Pits",
             "OverhaulItems",
             true,
-            "If true, pit overhauled mechanics are applied to items");
-
-        if(!OverhaulPlayers.Value && !OverhaulEnemies.Value && !OverhaulItems.Value)
-            return;
+            "If true, pit overhauled mechanics are applied to items",
+            () => Plugin.SetPatch(
+                OverhaulItems.Value,
+                AccessTools.Method(typeof(HurtCollider), "PhysObjectHurt"),
+                prefix: new HarmonyMethod(typeof(PitOverhaul), "PhysObjectHurtPrefix")
+            )
+        );
 
         Plugin.Harmony.Patch(
             AccessTools.Method(typeof(LevelGenerator), "GenerateDone"),    
             postfix: new HarmonyMethod(typeof(PitOverhaul), "GenerateDonePostfix")
         );
-
-        if(OverhaulPlayers.Value)
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(HurtCollider), "PlayerHurt"),
-                prefix: new HarmonyMethod(typeof(PitOverhaul), "PlayerHurtPrefix")
-            );
-
-        if(OverhaulEnemies.Value)
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(HurtCollider), "EnemyHurt"),
-                prefix: new HarmonyMethod(typeof(PitOverhaul), "EnemyHurtPrefix")
-            );
-
-        if(OverhaulItems.Value)
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(HurtCollider), "PhysObjectHurt"),
-                prefix: new HarmonyMethod(typeof(PitOverhaul), "PhysObjectHurtPrefix")
-            );
     }
 
     public static void GenerateDonePostfix(LevelGenerator __instance)

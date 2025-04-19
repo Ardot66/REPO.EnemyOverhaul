@@ -11,18 +11,17 @@ public static class GnomeOverhaul
 
     public static void Init()
     {
-        OverhaulItemDamage = Plugin.Config.Bind(
+        OverhaulItemDamage = Plugin.BindConfig(
             "Gnome",
             "OverhaulItemDamage",
             true,
-            "If true, significantly reduces the damage that Gnomes do to items"
-        );
-
-        if(OverhaulItemDamage.Value)
-            Plugin.Harmony.Patch(
+            "If true, significantly reduces the damage that Gnomes do to items",
+            () => Plugin.SetPatch(
+                OverhaulItemDamage.Value,
                 AccessTools.Method(typeof(EnemyGnome), "Start"),
                 postfix: new HarmonyMethod(typeof(GnomeOverhaul), "StartPostfix")
-            );
+            ) 
+        );
     }
 
     public static void StartPostfix(EnemyGnome __instance)

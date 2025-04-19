@@ -57,8 +57,7 @@ public class StateMachine<TState>(Action stateMachineAction) where TState : Enum
     {
         if(SetMode != StateSetMode.None)
             return false;
-        
-        Plugin.Logger.LogInfo(state);
+            
         StateTimer = time;
         FutureState = state;
         SetMode = StateSetMode.SetThisUpdate;

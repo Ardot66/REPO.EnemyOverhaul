@@ -4,6 +4,7 @@ using UnityEngine.Events;
 using System.Collections.Generic;
 using Photon.Pun;
 using BepInEx.Configuration;
+using System.Reflection;
 
 namespace Ardot.REPO.EnemyOverhaul;
 
@@ -13,23 +14,16 @@ public static class RobeOverhaul
 
     public static void Init()
     {
-        OverhaulAI = Plugin.Config.Bind(
+        OverhaulAI = Plugin.BindConfig(
             "Robe",
             "OverhaulAI",
             true,
-            "If true, Robe AI is overhauled"
-        );
-
-        if(!OverhaulAI.Value)
-            return;
-
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(EnemyRobe), "Awake"),
-            prefix: new HarmonyMethod(typeof(RobeOverhaul), "AwakePrefix")
-        );  
-        Plugin.Harmony.Patch(
-            AccessTools.Method(typeof(EnemyRobePersistent), "Update"),
-            prefix: new HarmonyMethod(typeof(RobeOverhaul), "PersistentUpdatePrefix")
+            "If true, Robe AI is overhauled",
+            () => Plugin.SetPatch(
+                OverhaulAI.Value,
+                AccessTools.Method(typeof(EnemyRobe), "Awake"),
+                prefix: new HarmonyMethod(typeof(RobeOverhaul), "AwakePrefix")
+            )
         );
     }
 
@@ -52,14 +46,12 @@ public static class RobeOverhaul
         robeOverride.sfxStunLoop = __instance.robeAnim.sfxStunLoop;
         robeOverride.sfxAttackUnder = __instance.robeAnim.sfxAttackUnder;
         robeOverride.sfxAttackUnderGlobal = __instance.robeAnim.sfxAttackUnderGlobal;
+        
+        __instance.GetComponent<Enemy>().Get<EnemyParent, Enemy>("EnemyParent").GetComponentInChildren<EnemyRobePersistent>().enabled = false;
+
         GameObject.Destroy(__instance.robeAnim);
         GameObject.Destroy(__instance);
 
-        return false;
-    }
-
-    public static bool PersistentUpdatePrefix()
-    {
         return false;
     }
 }

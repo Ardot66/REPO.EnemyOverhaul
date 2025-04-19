@@ -12,33 +12,33 @@ public static class HuntsmanOverhaul
 
     public static void Init()
     {
-        OverhaulDamageFalloff = Plugin.Config.Bind(
+        OverhaulDamageFalloff = Plugin.BindConfig(
             "Huntsman",
             "OverhaulDamageFalloff",
             true,
-            "If true, Huntsman damage reduces over long distances and increases at short range"
+            "If true, Huntsman damage reduces over long distances and increases at short range",
+            () => Plugin.SetPatch(
+                OverhaulDamageFalloff.Value,
+                AccessTools.Method(typeof(EnemyHunter), "ShootRPC"), 
+                postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "HunterShootRPCPostFix")
+            )
         );
-        OverhaulTargetPlayerItems = Plugin.Config.Bind(
+        OverhaulTargetPlayerItems = Plugin.BindConfig(
             "Huntsman",
             "OverhaulTargetPlayerItems",
             true,
-            "If true, Huntsman shoot directly at valuables that touch it, not the players holding those valuables."
+            "If true, Huntsman shoot directly at valuables that touch it, not the players holding those valuables.",
+            () => {
+                Plugin.SetPatch(
+                    OverhaulTargetPlayerItems.Value,
+                    AccessTools.Method(typeof(EnemyHunter), "OnTouchPlayerGrabbedObject"), 
+                    postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "HunterOnTouchPlayerGrabbedObjectPostfix"));
+                Plugin.SetPatch(
+                    OverhaulTargetPlayerItems.Value,
+                    AccessTools.Method(typeof(EnemyRigidbody), "OnCollisionStay"), 
+                    postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "EnemyOnCollisionStayPostfix"));
+            }
         );
-
-        if(OverhaulDamageFalloff.Value)
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(EnemyHunter), "ShootRPC"), 
-                postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "HunterShootRPCPostFix"));
-
-        if(OverhaulTargetPlayerItems.Value)
-        {
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(EnemyHunter), "OnTouchPlayerGrabbedObject"), 
-                postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "HunterOnTouchPlayerGrabbedObjectPostfix"));
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(EnemyRigidbody), "OnCollisionStay"), 
-                postfix: new HarmonyMethod(typeof(HuntsmanOverhaul), "EnemyOnCollisionStayPostfix"));
-        }
     }
 
     public static void HunterOnTouchPlayerGrabbedObjectPostfix(EnemyHunter __instance)

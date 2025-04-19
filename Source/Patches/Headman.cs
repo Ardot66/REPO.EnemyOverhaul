@@ -27,24 +27,24 @@ public static class HeadmanOverhaul
 
     public static void Init()
     {
-        OverhaulAI = Plugin.Config.Bind(
+        OverhaulAI = Plugin.BindConfig(
             "Headman",
             "OverhaulAI",
             true,
-            "If true, Headman AI is overhauled"
+            "If true, Headman AI is overhauled",
+            () => {
+                Plugin.SetPatch(
+                    OverhaulAI.Value,
+                    AccessTools.Method(typeof(EnemyHeadController), "VisionTriggered"), 
+                    prefix: new HarmonyMethod(typeof(HeadmanOverhaul), "VisionTriggeredPrefix")
+                );
+                Plugin.SetPatch(
+                    OverhaulAI.Value,
+                    AccessTools.Method(typeof(EnemyHeadController), "Update"),
+                    postfix: new HarmonyMethod(typeof(HeadmanOverhaul), "UpdatePostfix")
+                );
+            }
         );
-
-        if(OverhaulAI.Value)
-        {
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(EnemyHeadController), "VisionTriggered"), 
-                prefix: new HarmonyMethod(typeof(HeadmanOverhaul), "VisionTriggeredPrefix")
-            );
-            Plugin.Harmony.Patch(
-                AccessTools.Method(typeof(EnemyHeadController), "Update"),
-                postfix: new HarmonyMethod(typeof(HeadmanOverhaul), "UpdatePostfix")
-            );
-        }
     }
 
     public static void Start(EnemyHeadController instance, Enemy enemy)

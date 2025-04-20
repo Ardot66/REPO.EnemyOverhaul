@@ -4,7 +4,7 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "Ardot66"
 name = "Enemy_Overhaul"
-versionNumber = "1.0.10"
+versionNumber = "1.0.11"
 description = "(Reaper now overhauled!) Overhauls or improves the AI of the Trudge, Robe, Reaper, Headman, Huntsman, Gnome... and even pits? See description for more information!"
 websiteUrl = "https://github.com/Ardot66/REPO.EnemyOverhaul"
 containsNsfwContent = false

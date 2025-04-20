@@ -3,14 +3,12 @@
 ## Todo
 
 - Huntsman 'huh' phase
-- Trudge speed scaling at long distances
 - Double or even triple trudge health and drop reward
-- Look into Trudge not noticing extraction unlock
-- Add more messages when Trudge is approaching extraction or truck
 - More configurability
   - Gnome valuable damage
   - Trudge attack truck
   - Damage values all around
+- Fix pits not dealing damage while tumbling
 
 ## Enemy Checklist
 
@@ -23,7 +21,6 @@ I need to work mainly on unpredictability.
 
 ## Misc Changes
 
-- Make pits fall into adjacent rooms from the ceiling, dealing non-lethal fall damage.
 - Continue tweaking shop-item balance
 - Come up with a better recharge / energy system for tools?
   - Special items that are large and breakable (might have no value either), but provide power crystals when extracted?
@@ -93,7 +90,9 @@ I need to work mainly on unpredictability.
       - After maybe 10-15 secs goes back to being friendly.
 - Huntsman (Fixed!)
 - Reaper
-  - Only aggro players not moving?
+  - Chases the player and increases speed and damage as charge continues
+    - Players can scare it off by dealing damage to it, with tumble-launching being a viable option
+      - When scared, it will run away quickly.
 - Clown (Decent already)
 - Trudge
   - Really hates extraction points, will approach and destroy them.

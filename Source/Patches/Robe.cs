@@ -129,6 +129,7 @@ public class RobeOverride : MonoBehaviour
     public void SetState(RobeState state, float stateTimer)
     {
         bool stateSet = State.SetState(state, stateTimer);
+        Plugin.Logger.LogInfo($"{state}, {stateSet}");
 
         if(stateSet && SemiFunc.IsMasterClient() && SemiFunc.IsMultiplayer())
             PhotonView.RPC("SetState", RpcTarget.Others, state, stateTimer);
@@ -260,6 +261,8 @@ public class RobeOverride : MonoBehaviour
         });
         stateSpawn.OnSpawn.AddListener(() =>
         {
+            Aggro.LoseAggro(float.PositiveInfinity);
+
             if(SemiFunc.IsMasterClientOrSingleplayer())
                 SetState(RobeState.Spawn, 0.5f);    
         });
@@ -294,7 +297,8 @@ public class RobeOverride : MonoBehaviour
 
     public void Update()
     {
-        if(Enemy.CurrentState == EnemyState.Stunned || Enemy.CurrentState == EnemyState.Despawn)
+        EnemyParent.SpawnedTimerPause(float.PositiveInfinity);
+        if(Enemy.CurrentState == EnemyState.Stunned)
             return;
 
         // RampageTimer -= Time.deltaTime;

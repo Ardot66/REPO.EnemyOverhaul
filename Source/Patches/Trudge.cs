@@ -198,7 +198,8 @@ public class TrudgeOverride : MonoBehaviour
             SetState(TrudgeState.Idle, 0f);
         }
 
-        if(Enemy.CurrentState == EnemyState.Despawn || Enemy.CurrentState == EnemyState.Stunned)
+        EnemyParent.SpawnedTimerPause(float.PositiveInfinity);
+        if(Enemy.CurrentState == EnemyState.Stunned)
             return;
         
         HeadLookAt();

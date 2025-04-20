@@ -1,3 +1,7 @@
+## 1.0.11
+
+- Fixed an issue where Robe AI would break randomly.
+
 ## 1.0.10
 
 - Overhauled Reaper AI

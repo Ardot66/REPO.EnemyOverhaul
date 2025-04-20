@@ -46,9 +46,7 @@ public static class RobeOverhaul
         robeOverride.sfxStunLoop = __instance.robeAnim.sfxStunLoop;
         robeOverride.sfxAttackUnder = __instance.robeAnim.sfxAttackUnder;
         robeOverride.sfxAttackUnderGlobal = __instance.robeAnim.sfxAttackUnderGlobal;
-        
-        __instance.GetComponent<Enemy>().Get<EnemyParent, Enemy>("EnemyParent").GetComponentInChildren<EnemyRobePersistent>().enabled = false;
-
+    
         GameObject.Destroy(__instance.robeAnim);
         GameObject.Destroy(__instance);
 
@@ -169,6 +167,7 @@ public class RobeOverride : MonoBehaviour
         EnemyAgent = (EnemyNavMeshAgent)Enemy.Get("NavMeshAgent");
         Vision = (EnemyVision)Enemy.Get("Vision");
         EnemyParent = (EnemyParent)Enemy.Get("EnemyParent");
+        EnemyParent.GetComponentInChildren<EnemyRobePersistent>().enabled = false;
 
         if(!SemiFunc.IsMasterClientOrSingleplayer()) 
             return;

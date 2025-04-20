@@ -1,3 +1,11 @@
+## 1.0.10
+
+- Overhauled Reaper AI
+  - The Reaper will chase players, increasing in speed and damage over time.
+  - If hurt enough, the Reaper will get scared and flee from the players.
+- Updated config system to function when changed while the game is running.
+- Refactored state-machine system in Trudge and Robe.
+
 ## 1.0.9
 
 - Significantly improved Trudge AI

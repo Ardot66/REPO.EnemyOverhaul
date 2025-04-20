@@ -4,7 +4,7 @@
 
 This mod includes small behaviour tweaks for some enemies and completely rewritten AI for others, all with the goal of giving enemies unique, fun, and deadly quirks.
 
-Now configurable! Fine-grained control of enemy behaviours, damage, and other things is planned to be added in the future.
+Now configurable! Fine-grained control of enemy behaviours, damage, and other things is planned to be added in the future. Changing configuration during menus is also supported now. Do not change configuration during levels, as it may break AI until the next stage.
 
 Enemy Overhaul is currently under active development, so expect bugs and wonky behaviour from enemies. Please submit an issue to the github if you want something to be fixed! More enemies may be 'improved' in the future.
 
@@ -25,6 +25,19 @@ The Robe has had a change of heart, and only wants to try its best to help the t
 - The Robe will now follow players around, and won't attack unless provoked.
 - If the player the Robe is following grabs a heavy item, the Robe will help out and allow for easier lifting.
 - The Robe becomes a lot less friendly after the last extraction. (WIP)
+
+### Reaper
+
+The Reaper has always been a bit empty-headed, and now she can get pretty scared.
+- The Reaper will chase players, increasing in speed and damage over time.
+- If hurt enough, the Reaper will get scared and flee from the players.
+
+<details>
+<summary>Counterplay Spoiler Warning</summary>
+
+- You can tumble-launch to scare it... as long as you hit it.
+- 
+</details>
 
 ### Pits
 

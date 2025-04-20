@@ -82,6 +82,7 @@ public class Plugin : BaseUnityPlugin
         PitOverhaul.Init();
         RobeOverhaul.Init();
         OverhaulDirector.Init();
+        ReaperOverhaul.Init();
 
         for(int x = 0; x < ConfigEntries.Count; x++)
         {

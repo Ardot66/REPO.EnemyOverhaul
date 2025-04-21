@@ -52,8 +52,8 @@ The Headman is fine with having guests over, as long as they don't steal...
   
 ### Huntsman
 
-More serious changes coming soon! For now...
 - The Huntsman's gun now has damage falloff, with increased damage at close range to compensate.
+- The Huntsman lost on of his ears, and will now give players much more warning before firing.
 
 ### Gnome
 

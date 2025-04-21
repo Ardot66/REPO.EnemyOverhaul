@@ -47,14 +47,14 @@ public static class ReaperOverhaul
 
     public static void StateLeavePostfix(EnemyRunner __instance)
     {
-        ReaperAIImprovements state = __instance.GetComponent<ReaperAIImprovements>();
+        ReaperOverhaulState state = __instance.GetComponent<ReaperOverhaulState>();
         if(state.RunningTimer > 0f)
             state.OverrideMovement(3f, 5f, 6f, 0.2f);
     }
 
     public static void AwakePostfix(EnemyRunner __instance)
     {
-        ReaperAIImprovements state = __instance.gameObject.AddComponent<ReaperAIImprovements>();
+        ReaperOverhaulState state = __instance.gameObject.AddComponent<ReaperOverhaulState>();
         state.Reaper = __instance;
         state.Enemy = __instance.GetComponent<Enemy>();
         state.UpdateState = (Action<EnemyRunner.State>)AccessTools.Method(typeof(EnemyRunner), "UpdateState").CreateDelegate(typeof(Action<EnemyRunner.State>), __instance);
@@ -69,7 +69,7 @@ public static class ReaperOverhaul
             case EnemyRunner.State.AttackPlayerOver:
             case EnemyRunner.State.AttackPlayerBackToNavMesh:
             {
-                ReaperAIImprovements state = __instance.GetComponent<ReaperAIImprovements>();
+                ReaperOverhaulState state = __instance.GetComponent<ReaperOverhaulState>();
                 int damage = state.PrevHealth - (int)state.EnemyHealth.Get("healthCurrent"); 
                 state.Aggro -= damage;
 
@@ -88,7 +88,7 @@ public static class ReaperOverhaul
 
     public static bool StateAttackPlayerPrefix(EnemyRunner __instance)
     {
-        ReaperAIImprovements state = __instance.GetComponent<ReaperAIImprovements>();
+        ReaperOverhaulState state = __instance.GetComponent<ReaperOverhaulState>();
 
         if(state.HurtAggroCooldown > 0)
         {
@@ -156,7 +156,7 @@ public static class ReaperOverhaul
     }
 }
 
-public class ReaperAIImprovements : MonoBehaviour
+public class ReaperOverhaulState : MonoBehaviour
 {
     public Action<EnemyRunner.State> UpdateState;
     public Func<bool> VisionBlocked;

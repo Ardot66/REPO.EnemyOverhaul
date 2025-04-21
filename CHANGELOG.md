@@ -1,3 +1,8 @@
+## 1.0.12
+
+- Added a phase where Huntsman gives players a warning before attacking.
+- Fixed a variety of issues with pit behaviour.
+
 ## 1.0.11
 
 - Fixed an issue where Robe AI would break randomly.

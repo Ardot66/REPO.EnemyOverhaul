@@ -191,13 +191,13 @@ public static class Utils
             LevelPoint levelPoint = levelPoints[x];
             float distance = Mathf.Abs(idealRadius - Vector2.Distance(new Vector2(levelPoint.transform.position.x, levelPoint.transform.position.z), new Vector2(position.x, position.z)));
             
-            float score = Mathf.Min(distance < 5 ? 1 : 1 / (distance * distance), 1);
+            float score = Mathf.Min(distance < 10 ? 1 : 1 / (distance * distance), 1);
             score += score * Vector3.Distance(LevelGenerator.Instance.LevelParent.transform.position, levelPoint.transform.position) * truckDistanceMultiplier;
             levelPointScores[x] = score;
             totalScore += score;
         }
 
-        float chosen = UnityEngine.Random.Range(0, totalScore);
+        float chosen = UnityEngine.Random.Range(0f, totalScore);
         LevelPoint destination = levelPoints[levelPoints.Count - 1];
         for(int x = 0; x < levelPoints.Count; x++)
         {

@@ -68,12 +68,11 @@ public static class PitOverhaul
         {
             HurtCollider hurtCollider = mapHurtColliders[x];
 
-            if(hurtCollider.name != "Kill Box")
+            if(!hurtCollider.name.Contains("Kill Box"))
                 continue;
 
             hurtCollider.SetMetadata(MapHurtColliderMeta, true);
-            hurtCollider.physDestroy = false;
-        }
+        }    
     }
 
     public static bool PlayerHurtPrefix(HurtCollider __instance, PlayerAvatar _player)
@@ -95,7 +94,7 @@ public static class PitOverhaul
         PlayerController.instance.CollisionController.Set("fallDistance", 0); 
         _player.tumble.TumbleRequest(true, false);
         _player.tumble.TumbleOverrideTime(3f);
-        _player.tumble.ImpactHurtSet(0.5f, Random.Range(35, 45));
+        _player.tumble.ImpactHurtSet(float.PositiveInfinity, Random.Range(35, 45));
 
         return false;
     }
@@ -108,7 +107,7 @@ public static class PitOverhaul
         __instance.onImpactAny.Invoke();
         __instance.onImpactEnemy.Invoke();
 
-        LevelPoint destination = Utils.ChooseLevelPoint(_enemy.transform.position, 40, 1f);
+        LevelPoint destination = Utils.ChooseLevelPoint(_enemy.transform.position, 30, 1f);
         Vector3 finalPosition = destination.transform.position + new Vector3(0, 1, 0);
 
         _enemy.EnemyTeleported(finalPosition);
@@ -133,7 +132,7 @@ public static class PitOverhaul
         if(!__instance.GetMetadata(MapHurtColliderMeta, false))
             return true;
 
-        LevelPoint destination = Utils.ChooseLevelPoint(physGrabObject.transform.position, 40, 1f);
+        LevelPoint destination = Utils.ChooseLevelPoint(physGrabObject.transform.position, 20, 1f);
         Vector3 finalPosition = destination.transform.position + new Vector3(0, 1, 0);
 
         physGrabObject.Teleport(finalPosition, physGrabObject.transform.rotation);

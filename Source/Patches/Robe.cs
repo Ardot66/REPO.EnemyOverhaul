@@ -129,7 +129,6 @@ public class RobeOverride : MonoBehaviour
     public void SetState(RobeState state, float stateTimer)
     {
         bool stateSet = State.SetState(state, stateTimer);
-        Plugin.Logger.LogInfo($"{state}, {stateSet}");
 
         if(stateSet && SemiFunc.IsMasterClient() && SemiFunc.IsMultiplayer())
             PhotonView.RPC("SetState", RpcTarget.Others, state, stateTimer);
